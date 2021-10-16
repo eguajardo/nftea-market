@@ -3,10 +3,35 @@ import ReactDOM from "react-dom";
 import "index.css";
 import App from "App";
 import reportWebVitals from "reportWebVitals";
+import { ChainId, DAppProvider } from "@usedapp/core";
+import { BrowserRouter } from "react-router-dom";
+
+let readOnlyChainId;
+if (window.location.hostname.includes("localhost")) {
+  readOnlyChainId = ChainId.Hardhat;
+} else {
+  readOnlyChainId = ChainId.Mumbai;
+}
+
+const config = {
+  readOnlyChainId: readOnlyChainId,
+  readOnlyUrls: {
+    [ChainId.Hardhat]: "http://127.0.0.1:8545",
+    [ChainId.Mumbai]: "https://rpc-mumbai.maticvigil.com",
+  },
+  multicallAddresses: {
+    [ChainId.Mumbai]: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
+    [ChainId.Hardhat]: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
+  },
+};
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <DAppProvider config={config}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </DAppProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );
