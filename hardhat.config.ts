@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/types";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
+import "hardhat-docgen";
 
 import * as dotenv from "dotenv";
 
@@ -27,6 +28,11 @@ const config: HardhatUserConfig = {
         process.env.TESTNET_ACCOUNT_5!,
       ],
     },
+  },
+  docgen: {
+    path: "./docs",
+    clear: true,
+    runOnCompile: true,
   },
 };
 export default config;
