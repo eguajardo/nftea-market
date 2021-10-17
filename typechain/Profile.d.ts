@@ -21,45 +21,35 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface ProfileInterface extends ethers.utils.Interface {
   functions: {
-    "addressRegistered(address)": FunctionFragment;
     "createProfile(string,string)": FunctionFragment;
     "uri(string)": FunctionFragment;
     "username(address)": FunctionFragment;
-    "usernameExists(string)": FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "addressRegistered",
-    values: [string]
-  ): string;
   encodeFunctionData(
     functionFragment: "createProfile",
     values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "uri", values: [string]): string;
   encodeFunctionData(functionFragment: "username", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "usernameExists",
-    values: [string]
-  ): string;
 
-  decodeFunctionResult(
-    functionFragment: "addressRegistered",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "createProfile",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "username", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "usernameExists",
-    data: BytesLike
-  ): Result;
 
-  events: {};
+  events: {
+    "ProfileCreated(address,string,string)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "ProfileCreated"): EventFragment;
 }
+
+export type ProfileCreatedEvent = TypedEvent<
+  [string, string, string] & { account: string; username: string; uri: string }
+>;
 
 export class Profile extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -105,11 +95,6 @@ export class Profile extends BaseContract {
   interface: ProfileInterface;
 
   functions: {
-    addressRegistered(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
     createProfile(
       _username: string,
       _uri: string,
@@ -119,17 +104,7 @@ export class Profile extends BaseContract {
     uri(_username: string, overrides?: CallOverrides): Promise<[string]>;
 
     username(_address: string, overrides?: CallOverrides): Promise<[string]>;
-
-    usernameExists(
-      _username: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
   };
-
-  addressRegistered(
-    _address: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
 
   createProfile(
     _username: string,
@@ -141,17 +116,7 @@ export class Profile extends BaseContract {
 
   username(_address: string, overrides?: CallOverrides): Promise<string>;
 
-  usernameExists(
-    _username: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   callStatic: {
-    addressRegistered(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     createProfile(
       _username: string,
       _uri: string,
@@ -161,21 +126,29 @@ export class Profile extends BaseContract {
     uri(_username: string, overrides?: CallOverrides): Promise<string>;
 
     username(_address: string, overrides?: CallOverrides): Promise<string>;
-
-    usernameExists(
-      _username: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
   };
 
-  filters: {};
+  filters: {
+    "ProfileCreated(address,string,string)"(
+      account?: string | null,
+      username?: string | null,
+      uri?: string | null
+    ): TypedEventFilter<
+      [string, string, string],
+      { account: string; username: string; uri: string }
+    >;
+
+    ProfileCreated(
+      account?: string | null,
+      username?: string | null,
+      uri?: string | null
+    ): TypedEventFilter<
+      [string, string, string],
+      { account: string; username: string; uri: string }
+    >;
+  };
 
   estimateGas: {
-    addressRegistered(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     createProfile(
       _username: string,
       _uri: string,
@@ -185,19 +158,9 @@ export class Profile extends BaseContract {
     uri(_username: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     username(_address: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    usernameExists(
-      _username: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    addressRegistered(
-      _address: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     createProfile(
       _username: string,
       _uri: string,
@@ -211,11 +174,6 @@ export class Profile extends BaseContract {
 
     username(
       _address: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    usernameExists(
-      _username: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

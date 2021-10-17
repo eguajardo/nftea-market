@@ -20,6 +20,12 @@ contract Profile is Context {
     mapping (string => string) private _uris;
 
     /**
+     * @notice Emitted when the sender `account` registers the username 
+     * `username` with URI `uri`
+     */
+    event ProfileCreated(address indexed account, string indexed username, string indexed uri);
+
+    /**
     * @notice Creates a profile for the sender address with the specified `username` and 
     * `uri` pointing to their metadata
     * @param _username A unique string representing the owner of the profile. In order to 
@@ -30,11 +36,13 @@ contract Profile is Context {
     function createProfile(string calldata _username, string calldata _uri) public {
         require(bytes(_username).length > 0, "ERROR_USERNAME_IS_EMPTY");
         require(bytes(_uri).length > 0, "ERROR_URI_IS_EMPTY");
-        require(!addressRegistered(_msgSender()), "ERROR_ADDRESS_ALREADY_REGISTERED");
-        require(!usernameExists(_username), "ERROR_USERNAME_NOT_UNIQUE");
+        require(!_addressRegistered(_msgSender()), "ERROR_ADDRESS_ALREADY_REGISTERED");
+        require(!_usernameExists(_username), "ERROR_USERNAME_NOT_UNIQUE");
 
         _usernames[_msgSender()] = _username;
         _uris[_username] = _uri;
+
+        emit ProfileCreated(_msgSender(), _username, _uri);
     }
 
     /**
@@ -43,7 +51,7 @@ contract Profile is Context {
      * @return the URI pointing to the user's metadata
      */
     function uri(string calldata _username) public view returns (string memory) {
-        require(usernameExists(_username), "ERROR_USER_DOES_NOT_EXISTS");
+        require(_usernameExists(_username), "ERROR_USER_DOES_NOT_EXISTS");
 
         return _uris[_username];
     }
@@ -54,7 +62,7 @@ contract Profile is Context {
      * @return the username registered to the address
      */
     function username(address _address) public view returns (string memory) {
-        require(addressRegistered(_address), "ERROR_ADDRESS_NOT_REGISTERED");
+        require(_addressRegistered(_address), "ERROR_ADDRESS_NOT_REGISTERED");
 
         return _usernames[_address];
     }
@@ -63,7 +71,7 @@ contract Profile is Context {
      * @dev Returns true if the `_address` is already registered, false otherwise
      * @param _address The address to check if exists
      */
-    function addressRegistered(address _address) public view returns (bool) {
+    function _addressRegistered(address _address) internal view returns (bool) {
         return bytes(_usernames[_address]).length > 0;
     }
 
@@ -71,7 +79,7 @@ contract Profile is Context {
      * @dev Returns true if the username exists, false otherwise
      * @param _username The username to check if exists
      */
-    function usernameExists(string calldata _username) public view returns (bool) {
+    function _usernameExists(string calldata _username) internal view returns (bool) {
         return bytes(_uris[_username]).length > 0;
     }
 

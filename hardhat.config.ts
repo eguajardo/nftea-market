@@ -3,6 +3,7 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-docgen";
+import "hardhat-gas-reporter";
 
 import * as dotenv from "dotenv";
 
@@ -33,6 +34,11 @@ const config: HardhatUserConfig = {
     path: "./docs",
     clear: true,
     runOnCompile: true,
+  },
+  gasReporter: {
+    currency: "USD",
+    gasPrice: 30,
+    showTimeSpent: true,
   },
 };
 export default config;
