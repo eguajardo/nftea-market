@@ -287,7 +287,7 @@ export class ERC1155Serialized extends BaseContract {
     ): Promise<[boolean]>;
 
     totalSerialized(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -296,7 +296,7 @@ export class ERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+    uri(id_: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
   balanceOf(
@@ -367,13 +367,13 @@ export class ERC1155Serialized extends BaseContract {
   ): Promise<boolean>;
 
   totalSerialized(
-    _class: BigNumberish,
+    class_: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   totalSupply(id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-  uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+  uri(id_: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     balanceOf(
@@ -444,7 +444,7 @@ export class ERC1155Serialized extends BaseContract {
     ): Promise<boolean>;
 
     totalSerialized(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -453,7 +453,7 @@ export class ERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    uri(id_: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -623,7 +623,7 @@ export class ERC1155Serialized extends BaseContract {
     ): Promise<BigNumber>;
 
     totalSerialized(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -632,7 +632,7 @@ export class ERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    uri(id_: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -707,7 +707,7 @@ export class ERC1155Serialized extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     totalSerialized(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -717,7 +717,7 @@ export class ERC1155Serialized extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     uri(
-      _id: BigNumberish,
+      id_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

@@ -24,6 +24,7 @@ describe("ERC1155Serialized contract", () => {
   const TEST_SERIAL_1: number = 1;
   const TEST_URI_1: string = "TEST_URI_1";
   const TEST_URI_2: string = "TEST_URI_2";
+  const TEST_URI_3: string = "TEST_URI_3";
 
   let erc1155Contract: ExposedERC1155Serialized;
   let defaultAddress: SignerWithAddress;
@@ -43,29 +44,11 @@ describe("ERC1155Serialized contract", () => {
     await erc1155Contract.setURI(TEST_CLASS_2, TEST_URI_2);
   });
 
-  describe("uri", async () => {
-    it("Should get correct URI", async () => {
-      expect(await erc1155Contract.uri(TEST_CLASS_1_SERIAL_1)).to.equals(
-        TEST_URI_1
-      );
-    });
-
-    it("Should get correct URI with different ID same class", async () => {
-      expect(await erc1155Contract.uri(TEST_CLASS_1_SERIAL_2)).to.equals(
-        TEST_URI_1
-      );
-    });
-
-    it("Should get correct URI with different ID different class", async () => {
-      expect(await erc1155Contract.uri(TEST_CLASS_2_SERIAL_1)).to.equals(
-        TEST_URI_2
-      );
-    });
-
-    it("Should fail due to inexistent URI", async () => {
-      await expect(
-        erc1155Contract.uri(TEST_CLASS_3_SERIAL_1)
-      ).to.be.revertedWith("ERC1155Serialized: token URI does not exist");
+  describe("_setURI", async () => {
+    it("Should emit corresponding event when setting class URI", async () => {
+      await expect(await erc1155Contract.setURI(TEST_CLASS_3, TEST_URI_3))
+        .to.emit(erc1155Contract, "URI")
+        .withArgs(TEST_URI_3, TEST_CLASS_3_SERIAL_0);
     });
   });
 
@@ -192,6 +175,32 @@ describe("ERC1155Serialized contract", () => {
       expect(await erc1155Contract.tokenClass(TEST_CLASS_2_SERIAL_1)).to.equals(
         TEST_SERIAL_1
       );
+    });
+  });
+
+  describe("uri", async () => {
+    it("Should get correct URI", async () => {
+      expect(await erc1155Contract.uri(TEST_CLASS_1_SERIAL_1)).to.equals(
+        TEST_URI_1
+      );
+    });
+
+    it("Should get correct URI with different ID same class", async () => {
+      expect(await erc1155Contract.uri(TEST_CLASS_1_SERIAL_2)).to.equals(
+        TEST_URI_1
+      );
+    });
+
+    it("Should get correct URI with different ID different class", async () => {
+      expect(await erc1155Contract.uri(TEST_CLASS_2_SERIAL_1)).to.equals(
+        TEST_URI_2
+      );
+    });
+
+    it("Should fail due to inexistent URI", async () => {
+      await expect(
+        erc1155Contract.uri(TEST_CLASS_3_SERIAL_1)
+      ).to.be.revertedWith("ERC1155Serialized: token URI does not exist");
     });
   });
 });

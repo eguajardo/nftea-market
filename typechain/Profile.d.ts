@@ -96,36 +96,36 @@ export class Profile extends BaseContract {
 
   functions: {
     createProfile(
-      _username: string,
-      _uri: string,
+      username_: string,
+      uri_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    uri(_username: string, overrides?: CallOverrides): Promise<[string]>;
+    uri(username_: string, overrides?: CallOverrides): Promise<[string]>;
 
-    username(_address: string, overrides?: CallOverrides): Promise<[string]>;
+    username(address_: string, overrides?: CallOverrides): Promise<[string]>;
   };
 
   createProfile(
-    _username: string,
-    _uri: string,
+    username_: string,
+    uri_: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  uri(_username: string, overrides?: CallOverrides): Promise<string>;
+  uri(username_: string, overrides?: CallOverrides): Promise<string>;
 
-  username(_address: string, overrides?: CallOverrides): Promise<string>;
+  username(address_: string, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     createProfile(
-      _username: string,
-      _uri: string,
+      username_: string,
+      uri_: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    uri(_username: string, overrides?: CallOverrides): Promise<string>;
+    uri(username_: string, overrides?: CallOverrides): Promise<string>;
 
-    username(_address: string, overrides?: CallOverrides): Promise<string>;
+    username(address_: string, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -150,30 +150,30 @@ export class Profile extends BaseContract {
 
   estimateGas: {
     createProfile(
-      _username: string,
-      _uri: string,
+      username_: string,
+      uri_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    uri(_username: string, overrides?: CallOverrides): Promise<BigNumber>;
+    uri(username_: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    username(_address: string, overrides?: CallOverrides): Promise<BigNumber>;
+    username(address_: string, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     createProfile(
-      _username: string,
-      _uri: string,
+      username_: string,
+      uri_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     uri(
-      _username: string,
+      username_: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     username(
-      _address: string,
+      address_: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

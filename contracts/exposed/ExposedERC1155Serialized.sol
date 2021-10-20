@@ -10,40 +10,40 @@ import "../ERC1155Serialized.sol";
  */
 contract ExposedERC1155Serialized is ERC1155Serialized {
 
-    function setURI(uint128 _class, string memory _uri) public {
-        _setURI(_class, _uri);
+    function setURI(uint128 class_, string memory uri_) public {
+        _setURI(class_, uri_);
     }
 
     function mintUnserialized(
-        uint128 _class,
-        uint128 _quantity,
-        bytes memory _data
+        uint128 class_,
+        uint128 quantity_,
+        bytes memory data_
     ) public {
-        _mintUnserialized(_class, _quantity, _data);
+        _mintUnserialized(class_, quantity_, data_);
     }
 
     function mintSerialized(
-        address _to,
-        uint128 _class,
-        bytes memory _data
+        address to_,
+        uint128 class_,
+        bytes memory data_
     ) public {
-        _mintSerialized(_to, _class, _data);
+        _mintSerialized(to_, class_, data_);
     }
 
     function serializeToken(
-        address _to,
-        uint128 _class,
-        bytes memory _data
+        address to_,
+        uint128 class_,
+        bytes memory data_
     ) public {
-        _serializeToken(_to, _class, _data);
+        _serializeToken(to_, class_, data_);
     }
 
-    function toBaseId(uint128 _class) public view returns (uint256) {
-        return _toBaseId(_class);
+    function toBaseId(uint128 class_) public view returns (uint256) {
+        return _toBaseId(class_);
     }
 
-    function toId(uint128 _class, uint128 _serial) public view returns (uint256) {
-        return _toId(_class, _serial);
+    function toId(uint128 class_, uint128 _serial) public view returns (uint256) {
+        return _toId(class_, _serial);
     }
 
     function tokenClass(uint256 _id) public view returns (uint128) {

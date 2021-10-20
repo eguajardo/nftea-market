@@ -44,28 +44,29 @@ contract ERC1155Serialized is ERC1155Supply, ERC1155Holder {
      * i.e. tokens that belong to the same class should return the same URI
      * @return The metadata's URI of the given token ID
      */
-    function uri(uint256 _id) public view virtual override returns (string memory) {
-        require(bytes(_uris[_tokenClass(_id)]).length > 0, "ERC1155Serialized: token URI does not exist");
-        return _uris[_tokenClass(_id)];
+    function uri(uint256 id_) public view virtual override returns (string memory) {
+        require(bytes(_uris[_tokenClass(id_)]).length > 0, "ERC1155Serialized: token URI does not exist");
+        return _uris[_tokenClass(id_)];
     }
 
     /**
-     * @notice Returns the total serialized tokens from the class `_class`
-     * @param _class The class to check
+     * @notice Returns the total serialized tokens from the class `class_`
+     * @param class_ The class to check
      * @return An uint128 representing the number of tokens that have been
      * serialized of the given class
      */
-    function totalSerialized(uint128 _class) public view virtual returns (uint128) {
-        return _currentSerial[_class];
+    function totalSerialized(uint128 class_) public view virtual returns (uint128) {
+        return _currentSerial[class_];
     }
 
     /**
      * @dev Sets the token's class URI
-     * @param _class Token class whose URI will be set
-     * @param _uri The URI to set
+     * @param class_ Token class whose URI will be set
+     * @param uri_ The URI to set
      */
-    function _setURI(uint128 _class, string memory _uri) internal virtual {
-        _uris[_class] = _uri;
+    function _setURI(uint128 class_, string memory uri_) internal virtual {
+        _uris[class_] = uri_;
+        emit URI(uri_, _toBaseId(class_));
     }
 
     /**
@@ -74,95 +75,95 @@ contract ERC1155Serialized is ERC1155Supply, ERC1155Holder {
      * without spending too much gas serializing each one. Later the function
      * _serializeToken can be used to take a token from the reserve and
      * mint the serialized version of it.
-     * @param _class Token class to mint
-     * @param _quantity Amount of tokens to mint
-     * @param _data Additional data
+     * @param class_ Token class to mint
+     * @param quantity_ Amount of tokens to mint
+     * @param data_ Additional data
      */
     function _mintUnserialized(
-        uint128 _class,
-        uint128 _quantity,
-        bytes memory _data
+        uint128 class_,
+        uint128 quantity_,
+        bytes memory data_
     ) internal virtual {
-        uint256 baseId = _toBaseId(_class);
-        _mint(address(this), baseId, _quantity, _data);
+        uint256 baseId = _toBaseId(class_);
+        _mint(address(this), baseId, quantity_, data_);
     }
 
     /**
-     * @dev Mint a serialized token of class `_class` to address `_to`
-     * @param _to Address to where the minted token will be transferred
-     * @param _class Class of token to be minted
-     * @param _data Additional data
+     * @dev Mint a serialized token of class `class_` to address `to_`
+     * @param to_ Address to where the minted token will be transferred
+     * @param class_ Class of token to be minted
+     * @param data_ Additional data
      */
     function _mintSerialized(
-        address _to,
-        uint128 _class,
-        bytes memory _data
+        address to_,
+        uint128 class_,
+        bytes memory data_
     ) internal virtual {
-        _currentSerial[_class]++;
-        uint256 id = _toId(_class, _currentSerial[_class]);
+        _currentSerial[class_]++;
+        uint256 id = _toId(class_, _currentSerial[class_]);
 
-        _mint(_to, id, 1, _data);
+        _mint(to_, id, 1, data_);
     }
 
     /**
      * @dev Serializes a token from the already unserialized minted reserve in
      * this contract. First burns the unserialized token then mints the
      * serialized one.
-     * @param _to Address to where the serialized token will be transferred
-     * @param _class Class of token to be minted
-     * @param _data Additional data
+     * @param to_ Address to where the serialized token will be transferred
+     * @param class_ Class of token to be minted
+     * @param data_ Additional data
      */
     function _serializeToken(
-        address _to,
-        uint128 _class,
-        bytes memory _data
+        address to_,
+        uint128 class_,
+        bytes memory data_
     ) internal virtual {
-        uint256 baseId = _toBaseId(_class);
+        uint256 baseId = _toBaseId(class_);
         require(totalSupply(baseId) > 0, "ERC1155Serialized: not enough supply");
 
         // First burn an unserialized token from the unserialized reserve,
         // then mint the serialized version of it
         _burn(address(this), baseId, 1);
-        _mintSerialized(_to, _class, _data);
+        _mintSerialized(to_, class_, data_);
     }
 
     /**
      * @dev Returns the base ID from a token class (i.e. class with zero serial number)
-     * @param _class Token class of the base ID, (i.e. the first uint128 half of the ID)
+     * @param class_ Token class of the base ID, (i.e. the first uint128 half of the ID)
      * @return the base ID of the specified class, (i.e. with serial number zero)
      */
-    function _toBaseId(uint128 _class) internal view virtual returns (uint256) {
-        return uint256(_class) << 128;
+    function _toBaseId(uint128 class_) internal view virtual returns (uint256) {
+        return uint256(class_) << 128;
     }
 
     /**
-     * @dev Combines the class `_class` and serial number `_serial` of a token
+     * @dev Combines the class `class_` and serial number `serial_` of a token
      * to it's unique ID
-     * @param _class Token class, (i.e the first uint128 half of the ID)
-     * @param _serial Token serial number from it's class (i.e last uint128 half)
+     * @param class_ Token class, (i.e the first uint128 half of the ID)
+     * @param serial_ Token serial number from it's class (i.e last uint128 half)
      * @return The token ID
      */
-    function _toId(uint128 _class, uint128 _serial) internal view virtual returns (uint256) {
-        return _toBaseId(_class) // cast to set first bytes to class
-            | uint256(_serial); // same as above but then shift bytes to the end
+    function _toId(uint128 class_, uint128 serial_) internal view virtual returns (uint256) {
+        return _toBaseId(class_) // cast to set first bytes to class
+            | uint256(serial_); // same as above but then shift bytes to the end
     }
 
     /**
-     * @dev Extract the token class from the ID `_id`
-     * @param _id Token ID from which the class will be retrieved
+     * @dev Extract the token class from the ID `id_`
+     * @param id_ Token ID from which the class will be retrieved
      * @return The token class representing the first uint128 half of the ID
      */
-    function _tokenClass(uint256 _id) internal view virtual returns (uint128) {
-        return uint128(_id >> 128);
+    function _tokenClass(uint256 id_) internal view virtual returns (uint128) {
+        return uint128(id_ >> 128);
     }
 
     /**
-     * @dev Extract the token class' serial number from the ID `_id`
-     * @param _id Token ID from which the serial number will be retrieved
+     * @dev Extract the token class' serial number from the ID `id_`
+     * @param id_ Token ID from which the serial number will be retrieved
      * @return The serial number representing the last uint128 half of the ID
      * The serial number is relative to the token's class
      */
-    function _tokenSerialNumber(uint256 _id) internal view virtual returns (uint128) {
-        return uint128(_id);
+    function _tokenSerialNumber(uint256 id_) internal view virtual returns (uint128) {
+        return uint128(id_);
     }
 }

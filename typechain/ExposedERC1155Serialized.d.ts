@@ -300,16 +300,16 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<[boolean]>;
 
     mintSerialized(
-      _to: string,
-      _class: BigNumberish,
-      _data: BytesLike,
+      to_: string,
+      class_: BigNumberish,
+      data_: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     mintUnserialized(
-      _class: BigNumberish,
-      _quantity: BigNumberish,
-      _data: BytesLike,
+      class_: BigNumberish,
+      quantity_: BigNumberish,
+      data_: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -350,9 +350,9 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<ContractTransaction>;
 
     serializeToken(
-      _to: string,
-      _class: BigNumberish,
-      _data: BytesLike,
+      to_: string,
+      class_: BigNumberish,
+      data_: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -363,8 +363,8 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setURI(
-      _class: BigNumberish,
-      _uri: string,
+      class_: BigNumberish,
+      uri_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -374,12 +374,12 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<[boolean]>;
 
     toBaseId(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     toId(
-      _class: BigNumberish,
+      class_: BigNumberish,
       _serial: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -395,7 +395,7 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<[BigNumber]>;
 
     totalSerialized(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -404,7 +404,7 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+    uri(id_: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
 
   balanceOf(
@@ -428,16 +428,16 @@ export class ExposedERC1155Serialized extends BaseContract {
   ): Promise<boolean>;
 
   mintSerialized(
-    _to: string,
-    _class: BigNumberish,
-    _data: BytesLike,
+    to_: string,
+    class_: BigNumberish,
+    data_: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   mintUnserialized(
-    _class: BigNumberish,
-    _quantity: BigNumberish,
-    _data: BytesLike,
+    class_: BigNumberish,
+    quantity_: BigNumberish,
+    data_: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -478,9 +478,9 @@ export class ExposedERC1155Serialized extends BaseContract {
   ): Promise<ContractTransaction>;
 
   serializeToken(
-    _to: string,
-    _class: BigNumberish,
-    _data: BytesLike,
+    to_: string,
+    class_: BigNumberish,
+    data_: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -491,8 +491,8 @@ export class ExposedERC1155Serialized extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setURI(
-    _class: BigNumberish,
-    _uri: string,
+    class_: BigNumberish,
+    uri_: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -501,10 +501,10 @@ export class ExposedERC1155Serialized extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  toBaseId(_class: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+  toBaseId(class_: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   toId(
-    _class: BigNumberish,
+    class_: BigNumberish,
     _serial: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -517,13 +517,13 @@ export class ExposedERC1155Serialized extends BaseContract {
   ): Promise<BigNumber>;
 
   totalSerialized(
-    _class: BigNumberish,
+    class_: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   totalSupply(id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-  uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+  uri(id_: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     balanceOf(
@@ -547,16 +547,16 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<boolean>;
 
     mintSerialized(
-      _to: string,
-      _class: BigNumberish,
-      _data: BytesLike,
+      to_: string,
+      class_: BigNumberish,
+      data_: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     mintUnserialized(
-      _class: BigNumberish,
-      _quantity: BigNumberish,
-      _data: BytesLike,
+      class_: BigNumberish,
+      quantity_: BigNumberish,
+      data_: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -597,9 +597,9 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<void>;
 
     serializeToken(
-      _to: string,
-      _class: BigNumberish,
-      _data: BytesLike,
+      to_: string,
+      class_: BigNumberish,
+      data_: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -610,8 +610,8 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<void>;
 
     setURI(
-      _class: BigNumberish,
-      _uri: string,
+      class_: BigNumberish,
+      uri_: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -621,12 +621,12 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<boolean>;
 
     toBaseId(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     toId(
-      _class: BigNumberish,
+      class_: BigNumberish,
       _serial: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -642,7 +642,7 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<BigNumber>;
 
     totalSerialized(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -651,7 +651,7 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    uri(id_: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -774,16 +774,16 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<BigNumber>;
 
     mintSerialized(
-      _to: string,
-      _class: BigNumberish,
-      _data: BytesLike,
+      to_: string,
+      class_: BigNumberish,
+      data_: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     mintUnserialized(
-      _class: BigNumberish,
-      _quantity: BigNumberish,
-      _data: BytesLike,
+      class_: BigNumberish,
+      quantity_: BigNumberish,
+      data_: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -824,9 +824,9 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<BigNumber>;
 
     serializeToken(
-      _to: string,
-      _class: BigNumberish,
-      _data: BytesLike,
+      to_: string,
+      class_: BigNumberish,
+      data_: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -837,8 +837,8 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<BigNumber>;
 
     setURI(
-      _class: BigNumberish,
-      _uri: string,
+      class_: BigNumberish,
+      uri_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -848,12 +848,12 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<BigNumber>;
 
     toBaseId(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     toId(
-      _class: BigNumberish,
+      class_: BigNumberish,
       _serial: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -869,7 +869,7 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<BigNumber>;
 
     totalSerialized(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -878,7 +878,7 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    uri(id_: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -906,16 +906,16 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     mintSerialized(
-      _to: string,
-      _class: BigNumberish,
-      _data: BytesLike,
+      to_: string,
+      class_: BigNumberish,
+      data_: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     mintUnserialized(
-      _class: BigNumberish,
-      _quantity: BigNumberish,
-      _data: BytesLike,
+      class_: BigNumberish,
+      quantity_: BigNumberish,
+      data_: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -956,9 +956,9 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     serializeToken(
-      _to: string,
-      _class: BigNumberish,
-      _data: BytesLike,
+      to_: string,
+      class_: BigNumberish,
+      data_: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -969,8 +969,8 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setURI(
-      _class: BigNumberish,
-      _uri: string,
+      class_: BigNumberish,
+      uri_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -980,12 +980,12 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     toBaseId(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     toId(
-      _class: BigNumberish,
+      class_: BigNumberish,
       _serial: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1001,7 +1001,7 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     totalSerialized(
-      _class: BigNumberish,
+      class_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1011,7 +1011,7 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     uri(
-      _id: BigNumberish,
+      id_: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

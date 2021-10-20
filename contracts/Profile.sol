@@ -28,59 +28,59 @@ contract Profile is Context {
     /**
     * @notice Creates a profile for the sender address with the specified `username` and 
     * `uri` pointing to their metadata
-    * @param _username A unique string representing the owner of the profile. In order to 
+    * @param username_ A unique string representing the owner of the profile. In order to 
     * render properly in the client application the username must comply with the 
     * specifications for paths in a URL https://datatracker.ietf.org/doc/html/rfc3986#section-3.3
-    * @param _uri The URI pointing to the profile metadata, e.g. "ipfs://[CID]/metadata.json"
+    * @param uri_ The URI pointing to the profile metadata, e.g. "ipfs://[CID]/metadata.json"
     */
-    function createProfile(string calldata _username, string calldata _uri) public {
-        require(bytes(_username).length > 0, "ERROR_USERNAME_IS_EMPTY");
-        require(bytes(_uri).length > 0, "ERROR_URI_IS_EMPTY");
+    function createProfile(string calldata username_, string calldata uri_) public {
+        require(bytes(username_).length > 0, "ERROR_USERNAME_IS_EMPTY");
+        require(bytes(uri_).length > 0, "ERROR_URI_IS_EMPTY");
         require(!_addressRegistered(_msgSender()), "ERROR_ADDRESS_ALREADY_REGISTERED");
-        require(!_usernameExists(_username), "ERROR_USERNAME_NOT_UNIQUE");
+        require(!_usernameExists(username_), "ERROR_USERNAME_NOT_UNIQUE");
 
-        _usernames[_msgSender()] = _username;
-        _uris[_username] = _uri;
+        _usernames[_msgSender()] = username_;
+        _uris[username_] = uri_;
 
-        emit ProfileCreated(_msgSender(), _username, _uri);
+        emit ProfileCreated(_msgSender(), username_, uri_);
     }
 
     /**
      * @notice Returns the URI corresponding to `username`
-     * @param _username The username of the user to whom the URI belongs to
+     * @param username_ The username of the user to whom the URI belongs to
      * @return the URI pointing to the user's metadata
      */
-    function uri(string calldata _username) public view returns (string memory) {
-        require(_usernameExists(_username), "ERROR_USER_DOES_NOT_EXISTS");
+    function uri(string calldata username_) public view returns (string memory) {
+        require(_usernameExists(username_), "ERROR_USER_DOES_NOT_EXISTS");
 
-        return _uris[_username];
+        return _uris[username_];
     }
 
     /**
-     * @notice Returns the username corresponding to`_address`
-     * @param _address The account address to whom the username belongs to
+     * @notice Returns the username corresponding to`address_`
+     * @param address_ The account address to whom the username belongs to
      * @return the username registered to the address
      */
-    function username(address _address) public view returns (string memory) {
-        require(_addressRegistered(_address), "ERROR_ADDRESS_NOT_REGISTERED");
+    function username(address address_) public view returns (string memory) {
+        require(_addressRegistered(address_), "ERROR_ADDRESS_NOT_REGISTERED");
 
-        return _usernames[_address];
+        return _usernames[address_];
     }
 
     /**
-     * @dev Returns true if the `_address` is already registered, false otherwise
-     * @param _address The address to check if exists
+     * @dev Returns true if the `address_` is already registered, false otherwise
+     * @param address_ The address to check if exists
      */
-    function _addressRegistered(address _address) internal view returns (bool) {
-        return bytes(_usernames[_address]).length > 0;
+    function _addressRegistered(address address_) internal view returns (bool) {
+        return bytes(_usernames[address_]).length > 0;
     }
 
     /**
      * @dev Returns true if the username exists, false otherwise
-     * @param _username The username to check if exists
+     * @param username_ The username to check if exists
      */
-    function _usernameExists(string calldata _username) internal view returns (bool) {
-        return bytes(_uris[_username]).length > 0;
+    function _usernameExists(string calldata username_) internal view returns (bool) {
+        return bytes(_uris[username_]).length > 0;
     }
 
 }
