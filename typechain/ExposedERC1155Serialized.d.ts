@@ -23,15 +23,24 @@ interface ExposedERC1155SerializedInterface extends ethers.utils.Interface {
   functions: {
     "balanceOf(address,uint256)": FunctionFragment;
     "balanceOfBatch(address[],uint256[])": FunctionFragment;
+    "exists(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
+    "mintSerialized(address,uint128,bytes)": FunctionFragment;
+    "mintUnserialized(uint128,uint128,bytes)": FunctionFragment;
+    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
+    "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
     "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)": FunctionFragment;
     "safeTransferFrom(address,address,uint256,uint256,bytes)": FunctionFragment;
+    "serializeToken(address,uint128,bytes)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
     "setURI(uint128,string)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "toBaseId(uint128)": FunctionFragment;
     "toId(uint128,uint128)": FunctionFragment;
     "tokenClass(uint256)": FunctionFragment;
     "tokenSerialNumber(uint256)": FunctionFragment;
+    "totalSerialized(uint128)": FunctionFragment;
+    "totalSupply(uint256)": FunctionFragment;
     "uri(uint256)": FunctionFragment;
   };
 
@@ -44,8 +53,28 @@ interface ExposedERC1155SerializedInterface extends ethers.utils.Interface {
     values: [string[], BigNumberish[]]
   ): string;
   encodeFunctionData(
+    functionFragment: "exists",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintSerialized",
+    values: [string, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintUnserialized",
+    values: [BigNumberish, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "onERC1155BatchReceived",
+    values: [string, string, BigNumberish[], BigNumberish[], BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "onERC1155Received",
+    values: [string, string, BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "safeBatchTransferFrom",
@@ -54,6 +83,10 @@ interface ExposedERC1155SerializedInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "safeTransferFrom",
     values: [string, string, BigNumberish, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "serializeToken",
+    values: [string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
@@ -68,6 +101,10 @@ interface ExposedERC1155SerializedInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "toBaseId",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "toId",
     values: [BigNumberish, BigNumberish]
   ): string;
@@ -79,6 +116,14 @@ interface ExposedERC1155SerializedInterface extends ethers.utils.Interface {
     functionFragment: "tokenSerialNumber",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "totalSerialized",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalSupply",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "uri", values: [BigNumberish]): string;
 
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
@@ -86,8 +131,25 @@ interface ExposedERC1155SerializedInterface extends ethers.utils.Interface {
     functionFragment: "balanceOfBatch",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "exists", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isApprovedForAll",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintSerialized",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintUnserialized",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "onERC1155BatchReceived",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "onERC1155Received",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -99,6 +161,10 @@ interface ExposedERC1155SerializedInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "serializeToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "setApprovalForAll",
     data: BytesLike
   ): Result;
@@ -107,10 +173,19 @@ interface ExposedERC1155SerializedInterface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "toBaseId", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "toId", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "tokenClass", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokenSerialNumber",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalSerialized",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalSupply",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
@@ -216,11 +291,45 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber[]]>;
 
+    exists(id: BigNumberish, overrides?: CallOverrides): Promise<[boolean]>;
+
     isApprovedForAll(
       account: string,
       operator: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    mintSerialized(
+      _to: string,
+      _class: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    mintUnserialized(
+      _class: BigNumberish,
+      _quantity: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    onERC1155BatchReceived(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish[],
+      arg3: BigNumberish[],
+      arg4: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    onERC1155Received(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
+      arg4: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     safeBatchTransferFrom(
       from: string,
@@ -237,6 +346,13 @@ export class ExposedERC1155Serialized extends BaseContract {
       id: BigNumberish,
       amount: BigNumberish,
       data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    serializeToken(
+      _to: string,
+      _class: BigNumberish,
+      _data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -257,6 +373,11 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    toBaseId(
+      _class: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     toId(
       _class: BigNumberish,
       _serial: BigNumberish,
@@ -270,6 +391,16 @@ export class ExposedERC1155Serialized extends BaseContract {
 
     tokenSerialNumber(
       _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    totalSerialized(
+      _class: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    totalSupply(
+      id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -288,11 +419,45 @@ export class ExposedERC1155Serialized extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
+  exists(id: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
+
   isApprovedForAll(
     account: string,
     operator: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  mintSerialized(
+    _to: string,
+    _class: BigNumberish,
+    _data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  mintUnserialized(
+    _class: BigNumberish,
+    _quantity: BigNumberish,
+    _data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  onERC1155BatchReceived(
+    arg0: string,
+    arg1: string,
+    arg2: BigNumberish[],
+    arg3: BigNumberish[],
+    arg4: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  onERC1155Received(
+    arg0: string,
+    arg1: string,
+    arg2: BigNumberish,
+    arg3: BigNumberish,
+    arg4: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   safeBatchTransferFrom(
     from: string,
@@ -309,6 +474,13 @@ export class ExposedERC1155Serialized extends BaseContract {
     id: BigNumberish,
     amount: BigNumberish,
     data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  serializeToken(
+    _to: string,
+    _class: BigNumberish,
+    _data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -329,6 +501,8 @@ export class ExposedERC1155Serialized extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  toBaseId(_class: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
   toId(
     _class: BigNumberish,
     _serial: BigNumberish,
@@ -341,6 +515,13 @@ export class ExposedERC1155Serialized extends BaseContract {
     _id: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  totalSerialized(
+    _class: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  totalSupply(id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -357,11 +538,45 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
+    exists(id: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
+
     isApprovedForAll(
       account: string,
       operator: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    mintSerialized(
+      _to: string,
+      _class: BigNumberish,
+      _data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    mintUnserialized(
+      _class: BigNumberish,
+      _quantity: BigNumberish,
+      _data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    onERC1155BatchReceived(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish[],
+      arg3: BigNumberish[],
+      arg4: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    onERC1155Received(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
+      arg4: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     safeBatchTransferFrom(
       from: string,
@@ -378,6 +593,13 @@ export class ExposedERC1155Serialized extends BaseContract {
       id: BigNumberish,
       amount: BigNumberish,
       data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    serializeToken(
+      _to: string,
+      _class: BigNumberish,
+      _data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -398,6 +620,11 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    toBaseId(
+      _class: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     toId(
       _class: BigNumberish,
       _serial: BigNumberish,
@@ -411,6 +638,16 @@ export class ExposedERC1155Serialized extends BaseContract {
 
     tokenSerialNumber(
       _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    totalSerialized(
+      _class: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    totalSupply(
+      id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -528,10 +765,44 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    exists(id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
     isApprovedForAll(
       account: string,
       operator: string,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    mintSerialized(
+      _to: string,
+      _class: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    mintUnserialized(
+      _class: BigNumberish,
+      _quantity: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    onERC1155BatchReceived(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish[],
+      arg3: BigNumberish[],
+      arg4: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    onERC1155Received(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
+      arg4: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     safeBatchTransferFrom(
@@ -552,6 +823,13 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    serializeToken(
+      _to: string,
+      _class: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setApprovalForAll(
       operator: string,
       approved: boolean,
@@ -569,6 +847,11 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    toBaseId(
+      _class: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     toId(
       _class: BigNumberish,
       _serial: BigNumberish,
@@ -582,6 +865,16 @@ export class ExposedERC1155Serialized extends BaseContract {
 
     tokenSerialNumber(
       _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    totalSerialized(
+      _class: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    totalSupply(
+      id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -601,10 +894,47 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    exists(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     isApprovedForAll(
       account: string,
       operator: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    mintSerialized(
+      _to: string,
+      _class: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    mintUnserialized(
+      _class: BigNumberish,
+      _quantity: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    onERC1155BatchReceived(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish[],
+      arg3: BigNumberish[],
+      arg4: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    onERC1155Received(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish,
+      arg3: BigNumberish,
+      arg4: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     safeBatchTransferFrom(
@@ -625,6 +955,13 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    serializeToken(
+      _to: string,
+      _class: BigNumberish,
+      _data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     setApprovalForAll(
       operator: string,
       approved: boolean,
@@ -642,6 +979,11 @@ export class ExposedERC1155Serialized extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    toBaseId(
+      _class: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     toId(
       _class: BigNumberish,
       _serial: BigNumberish,
@@ -655,6 +997,16 @@ export class ExposedERC1155Serialized extends BaseContract {
 
     tokenSerialNumber(
       _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    totalSerialized(
+      _class: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    totalSupply(
+      id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -14,6 +14,34 @@ contract ExposedERC1155Serialized is ERC1155Serialized {
         _setURI(_class, _uri);
     }
 
+    function mintUnserialized(
+        uint128 _class,
+        uint128 _quantity,
+        bytes memory _data
+    ) public {
+        _mintUnserialized(_class, _quantity, _data);
+    }
+
+    function mintSerialized(
+        address _to,
+        uint128 _class,
+        bytes memory _data
+    ) public {
+        _mintSerialized(_to, _class, _data);
+    }
+
+    function serializeToken(
+        address _to,
+        uint128 _class,
+        bytes memory _data
+    ) public {
+        _serializeToken(_to, _class, _data);
+    }
+
+    function toBaseId(uint128 _class) public view returns (uint256) {
+        return _toBaseId(_class);
+    }
+
     function toId(uint128 _class, uint128 _serial) public view returns (uint256) {
         return _toId(_class, _serial);
     }
