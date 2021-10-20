@@ -37,7 +37,7 @@ describe("Profile contract", () => {
         TEST_URI_2
       );
       await expect(tx)
-        .to.be.emit(profileContract, "ProfileCreated")
+        .to.be.emit(profileContract, "ProfileCreation")
         .withArgs(defaultAddress.address, TEST_USERNAME_2, TEST_URI_2);
     });
 

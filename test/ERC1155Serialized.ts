@@ -83,7 +83,9 @@ describe("ERC1155Serialized contract", () => {
       await expect(
         await erc1155Contract.mintSerialized(receiver.address, TEST_CLASS_3, [])
       )
-        .to.emit(erc1155Contract, "TransferSingle")
+        .to.emit(erc1155Contract, "SerialMint")
+        .withArgs(receiver.address, TEST_CLASS_3, TEST_SERIAL_1)
+        .and.to.emit(erc1155Contract, "TransferSingle")
         .withArgs(
           defaultAddress.address,
           ethers.constants.AddressZero,
@@ -121,7 +123,9 @@ describe("ERC1155Serialized contract", () => {
       await expect(
         await erc1155Contract.serializeToken(receiver.address, TEST_CLASS_3, [])
       )
-        .to.emit(erc1155Contract, "TransferSingle")
+        .to.emit(erc1155Contract, "SerialMint")
+        .withArgs(receiver.address, TEST_CLASS_3, TEST_SERIAL_1)
+        .and.to.emit(erc1155Contract, "TransferSingle")
         .withArgs(
           defaultAddress.address,
           erc1155Contract.address,

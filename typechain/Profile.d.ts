@@ -41,13 +41,13 @@ interface ProfileInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "username", data: BytesLike): Result;
 
   events: {
-    "ProfileCreated(address,string,string)": EventFragment;
+    "ProfileCreation(address,string,string)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "ProfileCreated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProfileCreation"): EventFragment;
 }
 
-export type ProfileCreatedEvent = TypedEvent<
+export type ProfileCreationEvent = TypedEvent<
   [string, string, string] & { account: string; username: string; uri: string }
 >;
 
@@ -129,7 +129,7 @@ export class Profile extends BaseContract {
   };
 
   filters: {
-    "ProfileCreated(address,string,string)"(
+    "ProfileCreation(address,string,string)"(
       account?: string | null,
       username?: string | null,
       uri?: string | null
@@ -138,7 +138,7 @@ export class Profile extends BaseContract {
       { account: string; username: string; uri: string }
     >;
 
-    ProfileCreated(
+    ProfileCreation(
       account?: string | null,
       username?: string | null,
       uri?: string | null

@@ -30,6 +30,12 @@ contract ERC1155Serialized is ERC1155Supply, ERC1155Holder {
     mapping (uint128 => string) private _uris;
 
     /**
+     * @notice Emitted when a token of class `class` is minted with serial 
+     * number `serial` and transfered to recipient `to`
+     */
+    event SerialMint(address indexed to, uint128 indexed class, uint128 serial);
+
+    /**
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(
@@ -101,6 +107,8 @@ contract ERC1155Serialized is ERC1155Supply, ERC1155Holder {
     ) internal virtual {
         _currentSerial[class_]++;
         uint256 id = _toId(class_, _currentSerial[class_]);
+
+        emit SerialMint(to_, class_, _currentSerial[class_]);
 
         _mint(to_, id, 1, data_);
     }

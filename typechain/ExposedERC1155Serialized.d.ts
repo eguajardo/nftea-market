@@ -192,12 +192,14 @@ interface ExposedERC1155SerializedInterface extends ethers.utils.Interface {
 
   events: {
     "ApprovalForAll(address,address,bool)": EventFragment;
+    "SerialMint(address,uint128,uint128)": EventFragment;
     "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
     "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
     "URI(string,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SerialMint"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSingle"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
@@ -208,6 +210,14 @@ export type ApprovalForAllEvent = TypedEvent<
     account: string;
     operator: string;
     approved: boolean;
+  }
+>;
+
+export type SerialMintEvent = TypedEvent<
+  [string, BigNumber, BigNumber] & {
+    to: string;
+    class: BigNumber;
+    serial: BigNumber;
   }
 >;
 
@@ -671,6 +681,24 @@ export class ExposedERC1155Serialized extends BaseContract {
     ): TypedEventFilter<
       [string, string, boolean],
       { account: string; operator: string; approved: boolean }
+    >;
+
+    "SerialMint(address,uint128,uint128)"(
+      to?: string | null,
+      _class?: BigNumberish | null,
+      serial?: null
+    ): TypedEventFilter<
+      [string, BigNumber, BigNumber],
+      { to: string; class: BigNumber; serial: BigNumber }
+    >;
+
+    SerialMint(
+      to?: string | null,
+      _class?: BigNumberish | null,
+      serial?: null
+    ): TypedEventFilter<
+      [string, BigNumber, BigNumber],
+      { to: string; class: BigNumber; serial: BigNumber }
     >;
 
     "TransferBatch(address,address,address,uint256[],uint256[])"(

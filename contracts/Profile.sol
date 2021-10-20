@@ -23,7 +23,7 @@ contract Profile is Context {
      * @notice Emitted when the sender `account` registers the username 
      * `username` with URI `uri`
      */
-    event ProfileCreated(address indexed account, string indexed username, string indexed uri);
+    event ProfileCreation(address indexed account, string indexed username, string indexed uri);
 
     /**
     * @notice Creates a profile for the sender address with the specified `username` and 
@@ -42,7 +42,7 @@ contract Profile is Context {
         _usernames[_msgSender()] = username_;
         _uris[username_] = uri_;
 
-        emit ProfileCreated(_msgSender(), username_, uri_);
+        emit ProfileCreation(_msgSender(), username_, uri_);
     }
 
     /**
