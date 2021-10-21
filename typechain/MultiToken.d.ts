@@ -710,7 +710,7 @@ export class MultiToken extends BaseContract {
       supply_: BigNumberish,
       data_: BytesLike,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     renounceRole(
       role: BytesLike,
