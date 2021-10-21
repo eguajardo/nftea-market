@@ -5,3 +5,6 @@ cache
 artifacts
 
 .env
+
+typechain
+docs
