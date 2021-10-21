@@ -2,12 +2,18 @@
 pragma solidity ^0.8.3;
 
 import "@openzeppelin/contracts/utils/Context.sol";
+import "./MultiToken.sol";
 
 /**
  * @title Market
  * @notice Contract handling stalls and purchases
  */
 contract Market is Context {
+
+    /**
+     * @dev ERC-1155 token contract handling the NFTs for sale
+     */
+    MultiToken private tokenContract;
 
     /**
      * @dev Mapping of vendor addresses to their stall name
@@ -26,12 +32,32 @@ contract Market is Context {
     event StallRegistration(address indexed vendor, string indexed stallName, string indexed uri);
 
     /**
-     * @notice Verifies if a stall name is already registered
-     * @param stallName_ The stall name to check if taken
-     * @return true if the `stallName_` is already registered, false otherwise
+     * @notice Initialize contract and the market token
      */
-    function stallNameTaken(string calldata stallName_) public view returns (bool) {
-        return bytes(_uris[stallName_]).length > 0;
+    constructor () {
+        tokenContract = new MultiToken("NFTea.market", "NFTEA");
+    }
+
+    /**
+     * @notice Returns the URI corresponding to `stallName_`
+     * @param stallName_ Stall name whose URI is being queried
+     * @return the URI pointing to the stall's metadata
+     */
+    function uri(string calldata stallName_) external view returns (string memory) {
+        require(stallNameTaken(stallName_), "Market: unregistered stall name");
+
+        return _uris[stallName_];
+    }
+
+    /**
+     * @notice Returns the stall name registered to`vendor_` address
+     * @param vendor_ The account address to whom the stall belongs to
+     * @return the stall name registered to the vendor
+     */
+    function vendorStallName(address vendor_) external view returns (string memory) {
+        require(_vendorRegistered(vendor_), "Market: account does not own a stall");
+
+        return _stallNames[vendor_];
     }
 
     /**
@@ -44,7 +70,7 @@ contract Market is Context {
     * @param uri_ The URI pointing to the stall metadata, e.g. 
     * "ipfs://[CID]/metadata.json"
     */
-    function registerStall(string calldata stallName_, string calldata uri_) public {
+    function registerStall(string calldata stallName_, string calldata uri_) external {
         require(bytes(stallName_).length > 0, "Market: empty stall name");
         require(bytes(uri_).length > 0, "Market: empty metadata URI");
         require(!_vendorRegistered(_msgSender()), "Market: account already owns a stall");
@@ -57,25 +83,12 @@ contract Market is Context {
     }
 
     /**
-     * @notice Returns the URI corresponding to `stallName_`
-     * @param stallName_ Stall name whose URI is being queried
-     * @return the URI pointing to the stall's metadata
+     * @notice Verifies if a stall name is already registered
+     * @param stallName_ The stall name to check if taken
+     * @return true if the `stallName_` is already registered, false otherwise
      */
-    function uri(string calldata stallName_) public view returns (string memory) {
-        require(stallNameTaken(stallName_), "Market: unregistered stall name");
-
-        return _uris[stallName_];
-    }
-
-    /**
-     * @notice Returns the stall name registered to`vendor_` address
-     * @param vendor_ The account address to whom the stall belongs to
-     * @return the stall name registered to the vendor
-     */
-    function vendorStallName(address vendor_) public view returns (string memory) {
-        require(_vendorRegistered(vendor_), "Market: account does not own a stall");
-
-        return _stallNames[vendor_];
+    function stallNameTaken(string calldata stallName_) public view returns (bool) {
+        return bytes(_uris[stallName_]).length > 0;
     }
 
     /**
