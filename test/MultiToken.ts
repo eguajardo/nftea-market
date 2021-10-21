@@ -57,13 +57,19 @@ describe("MultiToken contract", () => {
   });
 
   describe("registerClass", async () => {
-    it("Should register class with limited supply successfully", async () => {
+    it("Should register class with limited supply emitting class registration", async () => {
       await expect(
-        await tokenContract.registerClass(TEST_URI_1, LIMITED_MAX_SUPPLY, [])
+        tokenContract.registerClass(TEST_URI_1, LIMITED_MAX_SUPPLY, [])
       )
         .to.emit(tokenContract, "ClassRegistration")
-        .withArgs(FIRST_CLASS, TEST_URI_1, LIMITED_MAX_SUPPLY)
-        .and.to.emit(tokenContract, "TransferSingle")
+        .withArgs(FIRST_CLASS, TEST_URI_1, LIMITED_MAX_SUPPLY);
+    });
+
+    it("Should register class with limited supply emitting mint transfer", async () => {
+      await expect(
+        tokenContract.registerClass(TEST_URI_1, LIMITED_MAX_SUPPLY, [])
+      )
+        .to.emit(tokenContract, "TransferSingle")
         .withArgs(
           defaultAddress.address,
           ethers.constants.AddressZero,
@@ -71,6 +77,10 @@ describe("MultiToken contract", () => {
           FIRST_CLASS_BASE_ID,
           LIMITED_MAX_SUPPLY
         );
+    });
+
+    it("Should update balance when registering class with limited supply", async () => {
+      await tokenContract.registerClass(TEST_URI_1, LIMITED_MAX_SUPPLY, []);
 
       expect(
         await tokenContract.balanceOf(
@@ -80,13 +90,26 @@ describe("MultiToken contract", () => {
       ).to.equals(LIMITED_MAX_SUPPLY);
     });
 
-    it("Should register class with unlimited supply successfully", async () => {
+    it("Should register class with unlimited supply emitting class registration", async () => {
       const SUPPLY = 0;
 
       await expect(tokenContract.registerClass(TEST_URI_1, SUPPLY, []))
         .to.emit(tokenContract, "ClassRegistration")
-        .withArgs(FIRST_CLASS, TEST_URI_1, SUPPLY)
-        .and.to.not.emit(tokenContract, "TransferSingle");
+        .withArgs(FIRST_CLASS, TEST_URI_1, SUPPLY);
+    });
+
+    it("Should not emit mint transfer", async () => {
+      const SUPPLY = 0;
+
+      await expect(
+        tokenContract.registerClass(TEST_URI_1, SUPPLY, [])
+      ).to.not.emit(tokenContract, "TransferSingle");
+    });
+
+    it("Should not update balance when registering class with unlimited supply", async () => {
+      const SUPPLY = 0;
+
+      await tokenContract.registerClass(TEST_URI_1, SUPPLY, []);
 
       expect(
         await tokenContract.balanceOf(

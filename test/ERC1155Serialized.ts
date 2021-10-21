@@ -79,13 +79,19 @@ describe("ERC1155Serialized contract", () => {
   });
 
   describe("_mintSerialized", async () => {
-    it("Should mint a serialized token", async () => {
+    it("Should mint a serialized token emitting serial mint", async () => {
       await expect(
-        await erc1155Contract.mintSerialized(receiver.address, TEST_CLASS_3, [])
+        erc1155Contract.mintSerialized(receiver.address, TEST_CLASS_3, [])
       )
         .to.emit(erc1155Contract, "SerialMint")
-        .withArgs(receiver.address, TEST_CLASS_3, TEST_SERIAL_1)
-        .and.to.emit(erc1155Contract, "TransferSingle")
+        .withArgs(receiver.address, TEST_CLASS_3, TEST_SERIAL_1);
+    });
+
+    it("Should mint a serialized token emitting mint transfer", async () => {
+      await expect(
+        erc1155Contract.mintSerialized(receiver.address, TEST_CLASS_3, [])
+      )
+        .to.emit(erc1155Contract, "TransferSingle")
         .withArgs(
           defaultAddress.address,
           ethers.constants.AddressZero,
@@ -119,21 +125,33 @@ describe("ERC1155Serialized contract", () => {
       await erc1155Contract.mintUnserialized(TEST_CLASS_3, QUANTITY_1, []);
     });
 
-    it("Should serialize an unserialized token", async () => {
+    it("Should serialize an unserialized token emitting SerialMint", async () => {
       await expect(
-        await erc1155Contract.serializeToken(receiver.address, TEST_CLASS_3, [])
+        erc1155Contract.serializeToken(receiver.address, TEST_CLASS_3, [])
       )
         .to.emit(erc1155Contract, "SerialMint")
-        .withArgs(receiver.address, TEST_CLASS_3, TEST_SERIAL_1)
-        .and.to.emit(erc1155Contract, "TransferSingle")
+        .withArgs(receiver.address, TEST_CLASS_3, TEST_SERIAL_1);
+    });
+
+    it("Should serialize an unserialized token emitting burn", async () => {
+      await expect(
+        erc1155Contract.serializeToken(receiver.address, TEST_CLASS_3, [])
+      )
+        .to.emit(erc1155Contract, "TransferSingle")
         .withArgs(
           defaultAddress.address,
           erc1155Contract.address,
           ethers.constants.AddressZero,
           TEST_CLASS_3_SERIAL_0,
           1
-        )
-        .and.to.emit(erc1155Contract, "TransferSingle")
+        );
+    });
+
+    it("Should serialize an unserialized token emitting mint transfer", async () => {
+      await expect(
+        erc1155Contract.serializeToken(receiver.address, TEST_CLASS_3, [])
+      )
+        .to.emit(erc1155Contract, "TransferSingle")
         .withArgs(
           defaultAddress.address,
           ethers.constants.AddressZero,
