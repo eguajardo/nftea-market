@@ -57,6 +57,26 @@ describe("MultiToken contract", () => {
   });
 
   describe("registerClass", async () => {
+    it("Should register class and return correct value", async () => {
+      expect(
+        await tokenContract.callStatic.registerClass(
+          TEST_URI_1,
+          LIMITED_MAX_SUPPLY,
+          []
+        )
+      ).to.equals(FIRST_CLASS);
+
+      await tokenContract.registerClass(TEST_URI_1, LIMITED_MAX_SUPPLY, []);
+
+      expect(
+        await tokenContract.callStatic.registerClass(
+          TEST_URI_1,
+          LIMITED_MAX_SUPPLY,
+          []
+        )
+      ).to.equals(FIRST_CLASS + 1);
+    });
+
     it("Should register class with limited supply emitting class registration", async () => {
       await expect(
         tokenContract.registerClass(TEST_URI_1, LIMITED_MAX_SUPPLY, [])

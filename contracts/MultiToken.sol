@@ -90,7 +90,11 @@ contract MultiToken is ERC1155Serialized, AccessControlEnumerable {
         string memory uri_, 
         uint128 supply_, 
         bytes memory data_
-    ) public onlyRole(MINTER_ROLE) {
+    ) 
+        public 
+        onlyRole(MINTER_ROLE)
+        returns (uint128)
+    {
         require(bytes(uri_).length > 0, "MultiToken: URI cannot be empty");
         _classCounter++;
 
@@ -105,6 +109,8 @@ contract MultiToken is ERC1155Serialized, AccessControlEnumerable {
         } else {
             _unlimitedSupplyClasses[_classCounter] = true;
         }
+
+        return _classCounter;
     }
 
     /**
