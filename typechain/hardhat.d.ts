@@ -73,13 +73,13 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ExposedERC1155Serialized__factory>;
     getContractFactory(
+      name: "Market",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Market__factory>;
+    getContractFactory(
       name: "MultiToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MultiToken__factory>;
-    getContractFactory(
-      name: "Profile",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Profile__factory>;
 
     getContractAt(
       name: "AccessControl",
@@ -157,15 +157,15 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ExposedERC1155Serialized>;
     getContractAt(
+      name: "Market",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Market>;
+    getContractAt(
       name: "MultiToken",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.MultiToken>;
-    getContractAt(
-      name: "Profile",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Profile>;
 
     // default types
     getContractFactory(

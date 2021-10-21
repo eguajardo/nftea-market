@@ -16,8 +16,8 @@ export type { ERC165 } from "./ERC165";
 export type { IERC165 } from "./IERC165";
 export type { ERC1155Serialized } from "./ERC1155Serialized";
 export type { ExposedERC1155Serialized } from "./ExposedERC1155Serialized";
+export type { Market } from "./Market";
 export type { MultiToken } from "./MultiToken";
-export type { Profile } from "./Profile";
 
 export { AccessControl__factory } from "./factories/AccessControl__factory";
 export { AccessControlEnumerable__factory } from "./factories/AccessControlEnumerable__factory";
@@ -34,5 +34,5 @@ export { ERC165__factory } from "./factories/ERC165__factory";
 export { IERC165__factory } from "./factories/IERC165__factory";
 export { ERC1155Serialized__factory } from "./factories/ERC1155Serialized__factory";
 export { ExposedERC1155Serialized__factory } from "./factories/ExposedERC1155Serialized__factory";
+export { Market__factory } from "./factories/Market__factory";
 export { MultiToken__factory } from "./factories/MultiToken__factory";
-export { Profile__factory } from "./factories/Profile__factory";
