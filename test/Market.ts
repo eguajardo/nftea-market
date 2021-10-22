@@ -2,9 +2,16 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TransactionResponse } from "@ethersproject/providers";
-
-import { Market, MultiToken, MultiToken__factory } from "../typechain";
 import { BigNumber } from "@ethersproject/bignumber";
+
+import {
+  Market,
+  MultiToken,
+  MultiToken__factory,
+  ERC20PresetFixedSupply,
+  ERC20PresetFixedSupply__factory,
+  Market__factory,
+} from "../typechain";
 
 describe("Market contract", () => {
   const STALL_NAME_REGISTERED: string = "testStallName1";
@@ -12,21 +19,50 @@ describe("Market contract", () => {
   const TEST_URI_1: string = "testURI1";
   const TEST_URI_2: string = "testURI2";
   const TEST_SUPPLY_1: number = 10;
-  const TEST_PRICE_WEI: number = 1;
+  const TEST_PRICE_CENTS: number = 100;
+  const FIAT_DECIMALS: number = 2;
+  const STABLECOIN_DECIMALS: number = 6;
+  const CURRENCY_BALANCE: BigNumber = ethers.utils.parseEther("1000000000");
 
   let marketContract: Market;
   let tokenContract: MultiToken;
+  let currencyContract: ERC20PresetFixedSupply;
+
   let defaultAddress: SignerWithAddress;
   let vendor: SignerWithAddress;
+  let currencyOwner: SignerWithAddress;
+  let buyer: SignerWithAddress;
+
+  const fiatToStablecoin = (amount: number): BigNumber => {
+    const additionalDecimals = STABLECOIN_DECIMALS - FIAT_DECIMALS;
+
+    return BigNumber.from(amount).mul(
+      BigNumber.from(10).pow(additionalDecimals)
+    );
+  };
 
   beforeEach(async () => {
-    [defaultAddress, vendor] = await ethers.getSigners();
+    [defaultAddress, vendor, currencyOwner, buyer] = await ethers.getSigners();
 
-    const marketFactory = await ethers.getContractFactory(
+    const currencyFactory: ERC20PresetFixedSupply__factory =
+      await ethers.getContractFactory("ERC20PresetFixedSupply", currencyOwner);
+    currencyContract = await currencyFactory.deploy(
+      "TEST",
+      "TEST",
+      CURRENCY_BALANCE,
+      buyer.address,
+      STABLECOIN_DECIMALS
+    );
+    await currencyContract.deployed();
+
+    const marketFactory: Market__factory = await ethers.getContractFactory(
       "Market",
       defaultAddress
     );
-    marketContract = await marketFactory.deploy();
+    marketContract = await marketFactory.deploy(
+      currencyContract.address,
+      STABLECOIN_DECIMALS
+    );
     await marketContract.deployed();
 
     const tokenFactory: MultiToken__factory = await ethers.getContractFactory(
@@ -86,7 +122,7 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(vendor)
-          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_WEI)
+          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_CENTS)
       )
         .to.emit(tokenContract, "ClassRegistration")
         .withArgs(REGISTERED_CLASS, TEST_URI_1, TEST_SUPPLY_1);
@@ -97,7 +133,7 @@ describe("Market contract", () => {
         marketContract.postTokenForSale(
           TEST_URI_1,
           TEST_SUPPLY_1,
-          TEST_PRICE_WEI
+          TEST_PRICE_CENTS
         )
       ).to.be.revertedWith("Market: account is not a registered vendor");
     });
@@ -107,7 +143,28 @@ describe("Market contract", () => {
         marketContract
           .connect(vendor)
           .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, ethers.constants.Zero)
-      ).to.be.revertedWith("Market: price lower than minimum of 1");
+      ).to.be.revertedWith("Market: price less than 100 cents");
+    });
+  });
+
+  describe("buyToken", async () => {
+    const REGISTERED_CLASS: number = 1;
+
+    beforeEach(async () => {
+      await marketContract
+        .connect(vendor)
+        .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_CENTS);
+    });
+
+    it("Should buy token succesfully", async () => {
+      currencyContract
+        .connect(buyer)
+        .approve(marketContract.address, fiatToStablecoin(TEST_PRICE_CENTS));
+      await marketContract.connect(buyer).buyToken(REGISTERED_CLASS);
+
+      expect(
+        await currencyContract.allowance(buyer.address, marketContract.address)
+      ).to.equals(ethers.constants.Zero);
     });
   });
 
@@ -137,7 +194,7 @@ describe("Market contract", () => {
       for (let i = 0; i < 10; i++) {
         await marketContract
           .connect(vendor)
-          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_WEI);
+          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_CENTS);
 
         classes.push(BigNumber.from(i + 1));
       }

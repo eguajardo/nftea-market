@@ -3,6 +3,7 @@ pragma solidity ^0.8.3;
 
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./MultiToken.sol";
 
 /**
@@ -11,12 +12,35 @@ import "./MultiToken.sol";
  */
 contract Market is Context {
 
-    uint8 public constant MINIMUM_NFT_PRICE = 1;
+    uint256 public constant PAYMENT_MAX_SHARES = 100000000;
+
+    uint256 public constant PLATFORM_COMISSION_SHARES = 5000000;
 
     /**
-     * @dev ERC-1155 token contract handling the NFTs for sale
+     * @notice Minimum price in the fiat currency's smallest denomination
+     * e.g. 100 to represent 1 USD
      */
-    MultiToken private tokenContract;
+    uint8 public constant MINIMUM_NFT_PRICE_FIAT = 100;
+
+    /**
+     * @notice ERC-1155 token contract handling the NFTs for sale
+     */
+    MultiToken public tokenContract;
+
+    /**
+     * @notice ERC-20 stablecoin token contract used for purchases
+     */
+    IERC20 public stablecoin;
+
+    /**
+     * @dev Decimals of fiat currency for price conversion with stablecoins
+     */
+    uint8 private FIAT_DECIMALS = 2;
+
+    /**
+     * @dev Decimals of the stablecoin for price conversion
+     */
+    uint8 private stablecoinDecimals;
 
     /**
      * @dev Mapping of vendor addresses to their stall name
@@ -44,16 +68,30 @@ contract Market is Context {
     mapping (uint128 => uint256) private _tokenPrices;
 
     /**
+     * @dev Mapping of token class to it's stall where is sold
+     */
+    mapping (uint128 => string) private _tokenStalls;
+
+    /**
+     * @dev Mapping of stall to it's payment splitter
+     */
+    mapping (string => PaymentSplitter) private _stallPaymentSplitters;
+
+    /**
      * @notice Emitted when the sender `vendor` registers a stall with the
      * name `stallName` and metadata URI `uri`
      */
     event StallRegistration(address indexed vendor, string indexed stallName, string indexed uri);
 
     /**
-     * @notice Initialize contract and the market token
+     * @notice Initialize contract and the NFT token contract
+     * @param stablecoin_ The stablecoin contract address used as currency
+     * @param stablecoinDecimals_ Amount of decimals used by the stablecoin
      */
-    constructor () {
+    constructor (IERC20 stablecoin_, uint8 stablecoinDecimals_) {
         tokenContract = new MultiToken("NFTea.market", "NFTEA");
+        stablecoin = stablecoin_;
+        stablecoinDecimals = stablecoinDecimals_;
     }
 
     /**
@@ -102,6 +140,16 @@ contract Market is Context {
         _uris[stallName_] = uri_;
         _vendors[stallName_] = _msgSender();
 
+        address[] memory payees = new address[](2);
+        payees[0] = address(this);
+        payees[1] = _msgSender();
+
+        uint256[] memory shares = new uint256[](2);
+        shares[0] = PLATFORM_COMISSION_SHARES;
+        shares[1] = PAYMENT_MAX_SHARES - PLATFORM_COMISSION_SHARES;
+
+        _stallPaymentSplitters[stallName_] = new PaymentSplitter(payees, shares);
+
         emit StallRegistration(_msgSender(), stallName_, uri_);
     }
 
@@ -109,7 +157,8 @@ contract Market is Context {
      * @notice Creates and posts a new token for sale
      * @param uri_ The token metadata's URI
      * @param supply_ Max supply for the token. Zero if the supply is unlimited
-     * @param price_ The token's price. Must be >= than `MINIMUM_NFT_PRICE`
+     * @param price_ The token's price. Must be >= than `MINIMUM_NFT_PRICE_FIAT`
+     * value is in the fiat smallest denomination, e.g. 100 equals 1 USD
      */
     function postTokenForSale(
         string memory uri_, 
@@ -117,14 +166,30 @@ contract Market is Context {
         uint256 price_
     ) external onlyVendor {
         require(
-            price_ >= MINIMUM_NFT_PRICE, 
+            price_ >= MINIMUM_NFT_PRICE_FIAT, 
             string(abi.encodePacked(
-                "Market: price lower than minimum of ", 
-                Strings.toString(MINIMUM_NFT_PRICE))));
+                "Market: price less than ", 
+                Strings.toString(MINIMUM_NFT_PRICE_FIAT),
+                " cents")));
 
+        string memory stallName = vendorStallName(_msgSender());
         uint128 class = tokenContract.registerClass(uri_, supply_, _msgData());
-        _stallTokens[vendorStallName(_msgSender())].push(class);
+
+        _stallTokens[stallName].push(class);
         _tokenPrices[class] = price_;
+        _tokenStalls[class] = stallName;
+    }
+
+    function buyToken(uint128 class_) external {
+        require(bytes(_tokenStalls[class_]).length > 0, "Market: unregistered token class");
+
+        stablecoin.transferFrom(
+            _msgSender(),
+            address(_stallPaymentSplitters[_tokenStalls[class_]]),
+            _fiatToStablecoin(_tokenPrices[class_])
+        );
+
+        tokenContract.mint(_msgSender(), class_, _msgData());
     }
 
     /**
@@ -177,6 +242,21 @@ contract Market is Context {
      */
     function _vendorRegistered(address vendor_) internal view returns (bool) {
         return bytes(_stallNames[vendor_]).length > 0;
+    }
+
+    /**
+     * @dev Converts an amount in the smallest denomination of the fiat 
+     * currency to the same amount in the smallest denomination of a stablecoin
+     * @param amount_ The amount to convert in the smallest denomination, 
+     * e.g. 100 to represent 1 USD since the smalles denomination is cents
+     * @return the amount converted to stablecoin.
+     * Example converting 100 USD cents to USDC:
+     * amount_ = 100
+     * returns 1000000 USDC
+     */
+    function _fiatToStablecoin(uint256 amount_) internal view returns (uint256) {
+        uint8 additionalDecimals = stablecoinDecimals - FIAT_DECIMALS;
+        return amount_ * 10 ** additionalDecimals;
     }
 
 }
