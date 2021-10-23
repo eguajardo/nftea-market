@@ -12,6 +12,8 @@ import {
   ERC20PresetFixedSupply,
   ERC20PresetFixedSupply__factory,
   Market__factory,
+  PaymentSplitter,
+  PaymentSplitter__factory,
 } from "../typechain";
 
 describe("Market contract", () => {
@@ -22,7 +24,7 @@ describe("Market contract", () => {
   const TEST_URI_1: string = "testURI1";
   const TEST_URI_2: string = "testURI2";
   const TEST_SUPPLY_1: number = 10;
-  const TEST_PRICE_CENTS: number = 100;
+  const TEST_PRICE_FIAT: number = 100;
   const FIAT_DECIMALS: number = 2;
   const STABLECOIN_DECIMALS: number = 6;
   const CURRENCY_BALANCE: BigNumber = ethers.utils.parseEther("1000000000");
@@ -31,7 +33,7 @@ describe("Market contract", () => {
   let tokenContract: MultiToken;
   let currencyContract: ERC20PresetFixedSupply;
 
-  let defaultAddress: SignerWithAddress;
+  let defaultSigner: SignerWithAddress;
   let vendor: SignerWithAddress;
   let currencyOwner: SignerWithAddress;
   let buyer: SignerWithAddress;
@@ -45,7 +47,7 @@ describe("Market contract", () => {
   };
 
   beforeEach(async () => {
-    [defaultAddress, vendor, currencyOwner, buyer] = await ethers.getSigners();
+    [defaultSigner, vendor, currencyOwner, buyer] = await ethers.getSigners();
 
     const currencyFactory: ERC20PresetFixedSupply__factory =
       await ethers.getContractFactory("ERC20PresetFixedSupply", currencyOwner);
@@ -60,7 +62,7 @@ describe("Market contract", () => {
 
     const marketFactory: Market__factory = await ethers.getContractFactory(
       "Market",
-      defaultAddress
+      defaultSigner
     );
     marketContract = await marketFactory.deploy(
       currencyContract.address,
@@ -88,7 +90,7 @@ describe("Market contract", () => {
       );
       await expect(tx)
         .to.be.emit(marketContract, "StallRegistration")
-        .withArgs(defaultAddress.address, STALL_NAME_UNREGISTERED, TEST_URI_2);
+        .withArgs(defaultSigner.address, STALL_NAME_UNREGISTERED, TEST_URI_2);
     });
 
     it("Should fail due to empty stall name", async () => {
@@ -125,7 +127,7 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(vendor)
-          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_CENTS)
+          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT)
       )
         .to.emit(tokenContract, "ClassRegistration")
         .withArgs(REGISTERED_CLASS, TEST_URI_1, TEST_SUPPLY_1);
@@ -136,7 +138,7 @@ describe("Market contract", () => {
         marketContract.postTokenForSale(
           TEST_URI_1,
           TEST_SUPPLY_1,
-          TEST_PRICE_CENTS
+          TEST_PRICE_FIAT
         )
       ).to.be.revertedWith("Market: account is not a registered vendor");
     });
@@ -151,11 +153,25 @@ describe("Market contract", () => {
   });
 
   describe("buyToken", async () => {
-    const REGISTERED_CLASS: number = 1;
+    const TEST_PRICE_STABLECOIN: BigNumber = fiatToStablecoin(TEST_PRICE_FIAT);
+    const NFT_FOR_SALE: number = 1;
+    const NFT_FOR_SALE_BASE_ID: BigNumber = BigNumber.from(
+      "340282366920938463463374607431768211456"
+    );
+    const NFT_NEXT_SERIAL: number = 1;
+
     let signatureDomain: object;
     let signatureTypes: Record<string, TypedDataField[]>;
+    let deadline: number;
+    let registeredStallPaymentSplitter: PaymentSplitter;
 
-    const sliceSignature = (signature: string) => {
+    const signAuthorization = async (value: object) => {
+      const signature = await buyer._signTypedData(
+        signatureDomain,
+        signatureTypes,
+        value
+      );
+
       const v = "0x" + signature.slice(130, 132);
       const r = signature.slice(0, 66);
       const s = "0x" + signature.slice(66, 130);
@@ -163,10 +179,25 @@ describe("Market contract", () => {
       return { v, r, s };
     };
 
+    const testSignature = async () => {
+      const nonce: Uint8Array = ethers.utils.randomBytes(32);
+
+      const { v, r, s } = await signAuthorization({
+        from: buyer.address,
+        to: await marketContract.paymentAddress(NFT_FOR_SALE),
+        value: TEST_PRICE_STABLECOIN,
+        validAfter: 0,
+        validBefore: deadline,
+        nonce: nonce,
+      });
+
+      return { v, r, s, nonce };
+    };
+
     beforeEach(async () => {
       await marketContract
         .connect(vendor)
-        .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_CENTS);
+        .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT);
 
       // All properties on a domain are optional
       signatureDomain = {
@@ -186,35 +217,23 @@ describe("Market contract", () => {
           { name: "nonce", type: "bytes32" },
         ],
       };
+
+      deadline = Math.floor(Date.now() / 1000) + 60;
+
+      const splitterFactory: PaymentSplitter__factory =
+        await ethers.getContractFactory("PaymentSplitter");
+      registeredStallPaymentSplitter = splitterFactory.attach(
+        await marketContract.paymentAddress(NFT_FOR_SALE)
+      );
     });
 
     it("Test stablecoin contract should transfer with authorization", async () => {
-      const amount: BigNumber = fiatToStablecoin(TEST_PRICE_CENTS);
-      const deadline: number = Math.floor(Date.now() / 1000) + 3600; // Valid for an hour;
-      const nonce: Uint8Array = ethers.utils.randomBytes(32);
-
-      // The data to sign
-      const value = {
-        from: buyer.address,
-        to: marketContract.address,
-        value: amount,
-        validAfter: 0,
-        validBefore: deadline,
-        nonce: nonce,
-      };
-
-      const signature = await buyer._signTypedData(
-        signatureDomain,
-        signatureTypes,
-        value
-      );
-
-      const { v, r, s } = sliceSignature(signature);
+      const { v, r, s, nonce } = await testSignature();
 
       await currencyContract.transferWithAuthorization(
         buyer.address,
-        marketContract.address,
-        amount,
+        registeredStallPaymentSplitter.address,
+        TEST_PRICE_STABLECOIN,
         0,
         deadline,
         nonce,
@@ -224,38 +243,18 @@ describe("Market contract", () => {
       );
 
       expect(
-        await currencyContract.balanceOf(marketContract.address)
-      ).to.equals(amount);
+        await currencyContract.balanceOf(registeredStallPaymentSplitter.address)
+      ).to.equals(TEST_PRICE_STABLECOIN);
     });
 
     it("Test stablecoin contract should fail with invalid signature", async () => {
-      const amount: BigNumber = fiatToStablecoin(TEST_PRICE_CENTS);
-      const deadline: number = Math.floor(Date.now() / 1000) + 3600; // Valid for an hour;
-      const nonce: Uint8Array = ethers.utils.randomBytes(32);
-
-      // The data to sign
-      const value = {
-        from: buyer.address,
-        to: marketContract.address,
-        value: amount,
-        validAfter: 0,
-        validBefore: deadline,
-        nonce: nonce,
-      };
-
-      const signature = await buyer._signTypedData(
-        signatureDomain,
-        signatureTypes,
-        value
-      );
-
-      const { v, r, s } = sliceSignature(signature);
+      const { v, r, s, nonce } = await testSignature();
 
       await expect(
         currencyContract.transferWithAuthorization(
           buyer.address,
-          defaultAddress.address,
-          amount,
+          defaultSigner.address,
+          TEST_PRICE_STABLECOIN,
           0,
           deadline,
           nonce,
@@ -266,15 +265,115 @@ describe("Market contract", () => {
       ).to.be.revertedWith("FiatTokenV2: invalid signature");
     });
 
-    it("Should buy token succesfully", async () => {
-      currencyContract
+    it("Should emit TokenPurchase event", async () => {
+      const { v, r, s, nonce } = await testSignature();
+
+      await expect(
+        marketContract
+          .connect(buyer)
+          .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s)
+      )
+        .to.emit(marketContract, "TokenPurchase")
+        .withArgs(
+          buyer.address,
+          NFT_FOR_SALE,
+          STALL_NAME_REGISTERED,
+          NFT_FOR_SALE_BASE_ID.add(NFT_NEXT_SERIAL),
+          TEST_PRICE_FIAT
+        );
+    });
+
+    it("Should update payment splitter balance", async () => {
+      const { v, r, s, nonce } = await testSignature();
+
+      await marketContract
         .connect(buyer)
-        .approve(marketContract.address, fiatToStablecoin(TEST_PRICE_CENTS));
-      await marketContract.connect(buyer).buyToken(REGISTERED_CLASS);
+        .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s);
 
       expect(
-        await currencyContract.allowance(buyer.address, marketContract.address)
-      ).to.equals(ethers.constants.Zero);
+        await currencyContract.balanceOf(registeredStallPaymentSplitter.address)
+      ).to.equals(TEST_PRICE_STABLECOIN);
+    });
+
+    it("Should update buyer's currency balance", async () => {
+      const { v, r, s, nonce } = await testSignature();
+
+      await marketContract
+        .connect(buyer)
+        .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s);
+
+      expect(await currencyContract.balanceOf(buyer.address)).to.equals(
+        CURRENCY_BALANCE.sub(TEST_PRICE_STABLECOIN)
+      );
+    });
+
+    it("Should update buyer's NFT balance", async () => {
+      const { v, r, s, nonce } = await testSignature();
+
+      await marketContract
+        .connect(buyer)
+        .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s);
+
+      expect(
+        await tokenContract.balanceOf(
+          buyer.address,
+          NFT_FOR_SALE_BASE_ID.add(NFT_NEXT_SERIAL)
+        )
+      ).to.equals(ethers.constants.One);
+    });
+
+    it("Should fail due to inexistent NFT class", async () => {
+      const { v, r, s, nonce } = await testSignature();
+
+      await expect(
+        marketContract
+          .connect(buyer)
+          .buyToken(NFT_FOR_SALE + 1, nonce, deadline, v, r, s)
+      ).to.be.revertedWith("Market: unregistered token class");
+    });
+
+    it("Should fail due to invalid signature", async () => {
+      const { v, r, s, nonce } = await testSignature();
+
+      await expect(
+        marketContract
+          .connect(buyer)
+          .buyToken(NFT_FOR_SALE, nonce, deadline + 1, v, r, s)
+      ).to.be.revertedWith("FiatTokenV2: invalid signature");
+    });
+
+    it("Should fail due to not enough funds", async () => {
+      await currencyContract
+        .connect(buyer)
+        .transfer(defaultSigner.address, CURRENCY_BALANCE);
+
+      const { v, r, s, nonce } = await testSignature();
+
+      await expect(
+        marketContract
+          .connect(buyer)
+          .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s)
+      ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
+    });
+
+    it("Should fail due to expired deadline", async () => {
+      const nonce: Uint8Array = ethers.utils.randomBytes(32);
+      const deadlineNow = Math.floor(Date.now() / 1000);
+
+      const { v, r, s } = await signAuthorization({
+        from: buyer.address,
+        to: await marketContract.paymentAddress(NFT_FOR_SALE),
+        value: TEST_PRICE_STABLECOIN,
+        validAfter: 0,
+        validBefore: deadlineNow,
+        nonce: nonce,
+      });
+
+      await expect(
+        marketContract
+          .connect(buyer)
+          .buyToken(NFT_FOR_SALE, nonce, deadlineNow, v, r, s)
+      ).to.be.revertedWith("FiatTokenV2: authorization is expired");
     });
   });
 
@@ -304,7 +403,7 @@ describe("Market contract", () => {
       for (let i = 0; i < 10; i++) {
         await marketContract
           .connect(vendor)
-          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_CENTS);
+          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT);
 
         classes.push(BigNumber.from(i + 1));
       }
@@ -330,7 +429,7 @@ describe("Market contract", () => {
 
     it("Should fail due to unregistered account", async () => {
       await expect(
-        marketContract.vendorStallName(defaultAddress.address)
+        marketContract.vendorStallName(defaultSigner.address)
       ).to.be.revertedWith("Market: account does not own a stall");
     });
   });

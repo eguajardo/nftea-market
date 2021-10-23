@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./MultiToken.sol";
+import "./IEIP3009.sol";
 
 /**
  * @title Market
@@ -14,6 +15,9 @@ contract Market is Context {
 
     uint256 public constant PAYMENT_MAX_SHARES = 100000000;
 
+    /**
+     * @notice About 5% in commission shares
+     */
     uint256 public constant PLATFORM_COMISSION_SHARES = 5000000;
 
     /**
@@ -30,7 +34,7 @@ contract Market is Context {
     /**
      * @notice ERC-20 stablecoin token contract used for purchases
      */
-    IERC20 public stablecoin;
+    IEIP3009 public stablecoin;
 
     /**
      * @dev Decimals of fiat currency for price conversion with stablecoins
@@ -84,11 +88,24 @@ contract Market is Context {
     event StallRegistration(address indexed vendor, string indexed stallName, string indexed uri);
 
     /**
+     * @notice Emitted when a token is posted for sale by `vendor` address
+     * in the stall `stallName` for `price` in fiat cents with token class `class`
+     * and `supply` copies
+     */
+    event TokenForSale(string indexed stallName, address indexed vendor, uint256 price, uint128 class, uint128 supply);
+
+    /**
+     * @notice Emitted when a token with `id` is purchased from class `class` 
+     * and stall `stallName` by `buyer` for `price` in fiat cents
+     */
+    event TokenPurchase(address indexed buyer, uint128 indexed class, string indexed stallName, uint256 id, uint256 price);
+
+    /**
      * @notice Initialize contract and the NFT token contract
      * @param stablecoin_ The stablecoin contract address used as currency
      * @param stablecoinDecimals_ Amount of decimals used by the stablecoin
      */
-    constructor (IERC20 stablecoin_, uint8 stablecoinDecimals_) {
+    constructor (IEIP3009 stablecoin_, uint8 stablecoinDecimals_) {
         tokenContract = new MultiToken("NFTea.market", "NFTEA");
         stablecoin = stablecoin_;
         stablecoinDecimals = stablecoinDecimals_;
@@ -154,10 +171,10 @@ contract Market is Context {
     }
 
     /**
-     * @notice Creates and posts a new token for sale
-     * @param uri_ The token metadata's URI
-     * @param supply_ Max supply for the token. Zero if the supply is unlimited
-     * @param price_ The token's price. Must be >= than `MINIMUM_NFT_PRICE_FIAT`
+     * @notice Creates and posts a new NFT for sale
+     * @param uri_ The NFT metadata's URI
+     * @param supply_ Max supply for the NFT. Zero if the supply is unlimited
+     * @param price_ The NFT's price. Must be >= than `MINIMUM_NFT_PRICE_FIAT`
      * value is in the fiat smallest denomination, e.g. 100 equals 1 USD
      */
     function postTokenForSale(
@@ -178,24 +195,66 @@ contract Market is Context {
         _stallTokens[stallName].push(class);
         _tokenPrices[class] = price_;
         _tokenStalls[class] = stallName;
+
+        emit TokenForSale(stallName, _msgSender(), price_, class, supply_);
     }
 
+    /**
+     * @notice Buys a NFT of class `class_`. This will transfer the cost
+     * of the NFT from sender to the payment splitter address. An
+     * authorization signature is required to move the stablecoin funds.
+     * For the transferWithAuthorization specification see 
+     * https://eips.ethereum.org/EIPS/eip-3009
+     * For an example of how to sign the authorization using ethers.js see
+     * https://docs.ethers.io/v5/api/signer/#Signer-signTypedData
+     * @param class_ Class of NFT to purchase
+     * @param nonce_ Random nonce, must be the same used to sign, otherwise
+     * the signature will be invalid
+     * @param deadline_ Time in unix epoch when the authorization expires.
+     * Must be the same used to sign, otherwise it will be invalidated
+     * @param v_ From signature
+     * @param r_ From signature
+     * @param s_ From signature
+     * @return the NFT ID purchased. First uint128 half represents the class
+     * last uint128 half represents the serial number.
+     */
     function buyToken(
-        uint128 class_//, 
-        // bytes32 nonce_, 
-        // uint8 v_, 
-        // bytes32 r_, 
-        // bytes32 s_
-    ) external {
-        require(bytes(_tokenStalls[class_]).length > 0, "Market: unregistered token class");
+        uint128 class_, 
+        bytes32 nonce_,
+        uint256 deadline_,
+        uint8 v_, 
+        bytes32 r_, 
+        bytes32 s_
+    ) external returns (uint256) {
+        string memory stallName = _tokenStalls[class_];
+        require(bytes(stallName).length > 0, "Market: unregistered token class");
 
-        stablecoin.transferFrom(
-            _msgSender(),
-            address(_stallPaymentSplitters[_tokenStalls[class_]]),
-            _fiatToStablecoin(_tokenPrices[class_])
+        stablecoin.transferWithAuthorization(
+            _msgSender(), 
+            paymentAddress(class_), 
+            _fiatToStablecoin(_tokenPrices[class_]), 
+            0, 
+            deadline_,
+            nonce_, 
+            v_, r_, s_
         );
 
-        tokenContract.mint(_msgSender(), class_, _msgData());
+        uint256 tokenId = tokenContract.mint(_msgSender(), class_, _msgData());
+
+        emit TokenPurchase(_msgSender(), class_, stallName, tokenId, _tokenPrices[class_]);
+        return tokenId;
+    }
+
+    /**
+     * @notice Returns the payment address to use when purchasing token `class_`
+     * @param class_ The token class associated with the payment address
+     * @return the address of the PaymentSplitter to use when purchasing
+     * this token `class_`
+     */
+    function paymentAddress(uint128 class_) public view returns (address) {
+        require(bytes(_tokenStalls[class_]).length > 0, "Market: unregistered token class");
+
+        return address(_stallPaymentSplitters[_tokenStalls[class_]]);
     }
 
     /**

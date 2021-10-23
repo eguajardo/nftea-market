@@ -99,18 +99,20 @@ contract ERC1155Serialized is ERC1155Supply, ERC1155Holder {
      * @param to_ Address to where the minted token will be transferred
      * @param class_ Class of token to be minted
      * @param data_ Additional data
+     * @return the token ID
      */
     function _mintSerialized(
         address to_,
         uint128 class_,
         bytes memory data_
-    ) internal virtual {
+    ) internal virtual returns (uint256) {
         _currentSerial[class_]++;
         uint256 id = _toId(class_, _currentSerial[class_]);
 
         emit SerialMint(to_, class_, _currentSerial[class_]);
 
         _mint(to_, id, 1, data_);
+        return id;
     }
 
     /**
@@ -120,19 +122,20 @@ contract ERC1155Serialized is ERC1155Supply, ERC1155Holder {
      * @param to_ Address to where the serialized token will be transferred
      * @param class_ Class of token to be minted
      * @param data_ Additional data
+     * @return the token ID
      */
     function _serializeToken(
         address to_,
         uint128 class_,
         bytes memory data_
-    ) internal virtual {
+    ) internal virtual returns (uint256) {
         uint256 baseId = _toBaseId(class_);
         require(totalSupply(baseId) > 0, "ERC1155Serialized: not enough supply");
 
         // First burn an unserialized token from the unserialized reserve,
         // then mint the serialized version of it
         _burn(address(this), baseId, 1);
-        _mintSerialized(to_, class_, data_);
+        return _mintSerialized(to_, class_, data_);
     }
 
     /**

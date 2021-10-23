@@ -121,21 +121,25 @@ contract MultiToken is ERC1155Serialized, AccessControlEnumerable {
      * @param to_ Receiver address
      * @param class_ Class of the token to mint
      * @param data_ Additional data
+     * @return the token ID
      */
     function mint(
         address to_,
         uint128 class_,
         bytes memory data_
-    ) public onlyRole(MINTER_ROLE) {
+    ) public onlyRole(MINTER_ROLE) returns (uint256) {
         require(to_ != address(0), "MultiToken: mint to zero address");
         require(class_ > 0, "MultiToken: reserved zero class");
         require(_classCounter >= class_, "MultiToken: unregistered registered");
 
+        uint256 id;
         if (_unlimitedSupplyClasses[class_]) {
-            _mintSerialized(to_, class_, data_);
+            id = _mintSerialized(to_, class_, data_);
         } else {
-            _serializeToken(to_, class_, data_);
+            id = _serializeToken(to_, class_, data_);
         }
+
+        return id;
     }
 
 }
