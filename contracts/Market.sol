@@ -180,7 +180,13 @@ contract Market is Context {
         _tokenStalls[class] = stallName;
     }
 
-    function buyToken(uint128 class_) external {
+    function buyToken(
+        uint128 class_//, 
+        // bytes32 nonce_, 
+        // uint8 v_, 
+        // bytes32 r_, 
+        // bytes32 s_
+    ) external {
         require(bytes(_tokenStalls[class_]).length > 0, "Market: unregistered token class");
 
         stablecoin.transferFrom(

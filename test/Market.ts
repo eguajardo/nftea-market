@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TransactionResponse } from "@ethersproject/providers";
 import { BigNumber } from "@ethersproject/bignumber";
+import { TypedDataField } from "@ethersproject/abstract-signer";
 
 import {
   Market,
@@ -14,6 +15,8 @@ import {
 } from "../typechain";
 
 describe("Market contract", () => {
+  const STABLECOIN_NAME: string = "TEST";
+  const STABLECOIN_VERSION: string = "2";
   const STALL_NAME_REGISTERED: string = "testStallName1";
   const STALL_NAME_UNREGISTERED: string = "testStallName2";
   const TEST_URI_1: string = "testURI1";
@@ -47,8 +50,8 @@ describe("Market contract", () => {
     const currencyFactory: ERC20PresetFixedSupply__factory =
       await ethers.getContractFactory("ERC20PresetFixedSupply", currencyOwner);
     currencyContract = await currencyFactory.deploy(
-      "TEST",
-      "TEST",
+      STABLECOIN_NAME,
+      STABLECOIN_NAME,
       CURRENCY_BALANCE,
       buyer.address,
       STABLECOIN_DECIMALS
@@ -149,11 +152,118 @@ describe("Market contract", () => {
 
   describe("buyToken", async () => {
     const REGISTERED_CLASS: number = 1;
+    let signatureDomain: object;
+    let signatureTypes: Record<string, TypedDataField[]>;
+
+    const sliceSignature = (signature: string) => {
+      const v = "0x" + signature.slice(130, 132);
+      const r = signature.slice(0, 66);
+      const s = "0x" + signature.slice(66, 130);
+
+      return { v, r, s };
+    };
 
     beforeEach(async () => {
       await marketContract
         .connect(vendor)
         .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_CENTS);
+
+      // All properties on a domain are optional
+      signatureDomain = {
+        name: STABLECOIN_NAME,
+        version: STABLECOIN_VERSION,
+        chainId: 31337,
+        verifyingContract: currencyContract.address,
+      };
+      // The named list of all type definitions
+      signatureTypes = {
+        TransferWithAuthorization: [
+          { name: "from", type: "address" },
+          { name: "to", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "validAfter", type: "uint256" },
+          { name: "validBefore", type: "uint256" },
+          { name: "nonce", type: "bytes32" },
+        ],
+      };
+    });
+
+    it("Test stablecoin contract should transfer with authorization", async () => {
+      const amount: BigNumber = fiatToStablecoin(TEST_PRICE_CENTS);
+      const deadline: number = Math.floor(Date.now() / 1000) + 3600; // Valid for an hour;
+      const nonce: Uint8Array = ethers.utils.randomBytes(32);
+
+      // The data to sign
+      const value = {
+        from: buyer.address,
+        to: marketContract.address,
+        value: amount,
+        validAfter: 0,
+        validBefore: deadline,
+        nonce: nonce,
+      };
+
+      const signature = await buyer._signTypedData(
+        signatureDomain,
+        signatureTypes,
+        value
+      );
+
+      const { v, r, s } = sliceSignature(signature);
+
+      await currencyContract.transferWithAuthorization(
+        buyer.address,
+        marketContract.address,
+        amount,
+        0,
+        deadline,
+        nonce,
+        v,
+        r,
+        s
+      );
+
+      expect(
+        await currencyContract.balanceOf(marketContract.address)
+      ).to.equals(amount);
+    });
+
+    it("Test stablecoin contract should fail with invalid signature", async () => {
+      const amount: BigNumber = fiatToStablecoin(TEST_PRICE_CENTS);
+      const deadline: number = Math.floor(Date.now() / 1000) + 3600; // Valid for an hour;
+      const nonce: Uint8Array = ethers.utils.randomBytes(32);
+
+      // The data to sign
+      const value = {
+        from: buyer.address,
+        to: marketContract.address,
+        value: amount,
+        validAfter: 0,
+        validBefore: deadline,
+        nonce: nonce,
+      };
+
+      const signature = await buyer._signTypedData(
+        signatureDomain,
+        signatureTypes,
+        value
+      );
+
+      const { v, r, s } = sliceSignature(signature);
+
+      await expect(
+        currencyContract.transferWithAuthorization(
+          buyer.address,
+          defaultAddress.address,
+          amount,
+          0,
+          deadline,
+          nonce,
+          v,
+          r,
+          s
+        )
+      ).to.be.revertedWith("FiatTokenV2: invalid signature");
     });
 
     it("Should buy token succesfully", async () => {
