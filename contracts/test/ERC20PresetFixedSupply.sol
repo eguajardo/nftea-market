@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.0-rc.0 (token/ERC20/presets/ERC20PresetFixedSupply.sol)
-pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+// Downgraded compiler version and customized to meet dependencies requirements
+pragma solidity ^0.6.0;
+
+import "./dependencies/openzeppelin/ERC20Burnable.sol";
+import "./dependencies/centre-tokens/EIP3009.sol";
 
 /**
  * @dev {ERC20} token, including:
@@ -16,9 +19,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
  *
  * _Available since v3.4._
  */
-contract ERC20PresetFixedSupply is ERC20Burnable {
-
-    uint8 private _decimals;
+contract ERC20PresetFixedSupply is ERC20Burnable, EIP3009 {
 
     /**
      * @dev Mints `initialSupply` amount of token and transfers them to `owner`.
@@ -30,13 +31,25 @@ contract ERC20PresetFixedSupply is ERC20Burnable {
         string memory symbol,
         uint256 initialSupply,
         address owner,
-        uint8 decimals_
-    ) ERC20(name, symbol) {
+        uint8 decimals
+    ) public ERC20(name, symbol) {
         _mint(owner, initialSupply);
-        _decimals = decimals_;
+        _setupDecimals(decimals);
     }
 
-    function decimals() public view virtual override returns (uint8) {
-        return _decimals;
+    function _approve(
+        address owner, 
+        address spender, 
+        uint256 amount
+    ) internal virtual override(AbstractFiatTokenV1, ERC20) {
+        ERC20._approve(owner, spender, amount);
+    }
+
+    function _transfer(
+        address sender,
+        address recipient, 
+        uint256 amount
+    ) internal virtual override(AbstractFiatTokenV1, ERC20) {
+        ERC20._transfer(sender, recipient, amount);
     }
 }
