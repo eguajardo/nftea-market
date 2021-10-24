@@ -29,7 +29,7 @@ contract Market is Context {
     /**
      * @notice ERC-1155 token contract handling the NFTs for sale
      */
-    MultiToken public tokenContract;
+    MultiToken public nftContract;
 
     /**
      * @notice ERC-20 stablecoin token contract used for purchases
@@ -62,19 +62,19 @@ contract Market is Context {
     mapping (string => string) private _uris;
 
     /**
-     * @dev Mapping of stall names to an array of the token classes for sale
+     * @dev Mapping of stall names to an array of the NFT classes for sale
      */
-    mapping (string => uint128[]) private _stallTokens;
+    mapping (string => uint128[]) private _stallNFTs;
 
     /**
-     * @dev Mapping of the token class to it's price
+     * @dev Mapping of the NFT class to it's price
      */
-    mapping (uint128 => uint256) private _tokenPrices;
+    mapping (uint128 => uint256) private _nftPrices;
 
     /**
-     * @dev Mapping of token class to it's stall where is sold
+     * @dev Mapping of NFT class to it's stall where is sold
      */
-    mapping (uint128 => string) private _tokenStalls;
+    mapping (uint128 => string) private _nftStalls;
 
     /**
      * @dev Mapping of stall to it's payment splitter
@@ -88,17 +88,17 @@ contract Market is Context {
     event StallRegistration(address indexed vendor, string indexed stallName, string indexed uri);
 
     /**
-     * @notice Emitted when a token is posted for sale by `vendor` address
-     * in the stall `stallName` for `price` in fiat cents with token class `class`
+     * @notice Emitted when a NFT is posted for sale by `vendor` address
+     * in the stall `stallName` for `price` in fiat cents with NFT class `class`
      * and `supply` copies
      */
-    event TokenForSale(string indexed stallName, address indexed vendor, uint256 price, uint128 class, uint128 supply);
+    event NFTForSale(string indexed stallName, address indexed vendor, uint256 price, uint128 class, uint128 supply);
 
     /**
-     * @notice Emitted when a token with `id` is purchased from class `class` 
+     * @notice Emitted when a NFT with `id` is purchased from class `class` 
      * and stall `stallName` by `buyer` for `price` in fiat cents
      */
-    event TokenPurchase(address indexed buyer, uint128 indexed class, string indexed stallName, uint256 id, uint256 price);
+    event NFTPurchase(address indexed buyer, uint128 indexed class, string indexed stallName, uint256 id, uint256 price);
 
     /**
      * @notice Initialize contract and the NFT token contract
@@ -106,7 +106,7 @@ contract Market is Context {
      * @param stablecoinDecimals_ Amount of decimals used by the stablecoin
      */
     constructor (IEIP3009 stablecoin_, uint8 stablecoinDecimals_) {
-        tokenContract = new MultiToken("NFTea.market", "NFTEA");
+        nftContract = new MultiToken("NFTea.market", "NFTEA");
         stablecoin = stablecoin_;
         stablecoinDecimals = stablecoinDecimals_;
     }
@@ -122,8 +122,8 @@ contract Market is Context {
     /**
      * @notice Returns the address of the ERC1155 contract address
      */
-    function tokenContractAddress() external view returns (address) {
-        return address(tokenContract);
+    function nftContractAddress() external view returns (address) {
+        return address(nftContract);
     }
 
     /**
@@ -177,7 +177,7 @@ contract Market is Context {
      * @param price_ The NFT's price. Must be >= than `MINIMUM_NFT_PRICE_FIAT`
      * value is in the fiat smallest denomination, e.g. 100 equals 1 USD
      */
-    function postTokenForSale(
+    function postNFTForSale(
         string memory uri_, 
         uint128 supply_,
         uint256 price_
@@ -190,13 +190,13 @@ contract Market is Context {
                 " cents")));
 
         string memory stallName = vendorStallName(_msgSender());
-        uint128 class = tokenContract.registerClass(uri_, supply_, _msgData());
+        uint128 class = nftContract.registerClass(uri_, supply_, _msgData());
 
-        _stallTokens[stallName].push(class);
-        _tokenPrices[class] = price_;
-        _tokenStalls[class] = stallName;
+        _stallNFTs[stallName].push(class);
+        _nftPrices[class] = price_;
+        _nftStalls[class] = stallName;
 
-        emit TokenForSale(stallName, _msgSender(), price_, class, supply_);
+        emit NFTForSale(stallName, _msgSender(), price_, class, supply_);
     }
 
     /**
@@ -218,7 +218,7 @@ contract Market is Context {
      * @return the NFT ID purchased. First uint128 half represents the class
      * last uint128 half represents the serial number.
      */
-    function buyToken(
+    function buyNFT(
         uint128 class_, 
         bytes32 nonce_,
         uint256 deadline_,
@@ -226,46 +226,46 @@ contract Market is Context {
         bytes32 r_, 
         bytes32 s_
     ) external returns (uint256) {
-        string memory stallName = _tokenStalls[class_];
-        require(bytes(stallName).length > 0, "Market: unregistered token class");
+        string memory stallName = _nftStalls[class_];
+        require(bytes(stallName).length > 0, "Market: unregistered NFT class");
 
         stablecoin.transferWithAuthorization(
             _msgSender(), 
             paymentAddress(class_), 
-            _fiatToStablecoin(_tokenPrices[class_]), 
+            _fiatToStablecoin(_nftPrices[class_]), 
             0, 
             deadline_,
             nonce_, 
             v_, r_, s_
         );
 
-        uint256 tokenId = tokenContract.mint(_msgSender(), class_, _msgData());
+        uint256 tokenId = nftContract.mint(_msgSender(), class_, _msgData());
 
-        emit TokenPurchase(_msgSender(), class_, stallName, tokenId, _tokenPrices[class_]);
+        emit NFTPurchase(_msgSender(), class_, stallName, tokenId, _nftPrices[class_]);
         return tokenId;
     }
 
     /**
-     * @notice Returns the payment address to use when purchasing token `class_`
-     * @param class_ The token class associated with the payment address
+     * @notice Returns the payment address to use when purchasing NFT `class_`
+     * @param class_ The NFT class associated with the payment address
      * @return the address of the PaymentSplitter to use when purchasing
-     * this token `class_`
+     * this NFT `class_`
      */
     function paymentAddress(uint128 class_) public view returns (address) {
-        require(bytes(_tokenStalls[class_]).length > 0, "Market: unregistered token class");
+        require(bytes(_nftStalls[class_]).length > 0, "Market: unregistered NFT class");
 
-        return address(_stallPaymentSplitters[_tokenStalls[class_]]);
+        return address(_stallPaymentSplitters[_nftStalls[class_]]);
     }
 
     /**
-     * @notice Returns the list of token classes for sale in the given stall
-     * @param stallName_ Stall name in which the token classes are for sale
-     * @return an array of token classes for sale in the stall `_stall`
+     * @notice Returns the list of NFT classes for sale in the given stall
+     * @param stallName_ Stall name in which the NFT classes are for sale
+     * @return an array of NFT classes for sale in the stall `_stall`
      */
-    function stallTokens(string calldata stallName_) public view returns (uint128[] memory) {
+    function stallNFTs(string calldata stallName_) public view returns (uint128[] memory) {
         require(stallNameTaken(stallName_), "Market: unregistered stall name");
         
-        return _stallTokens[stallName_];
+        return _stallNFTs[stallName_];
     }
 
     /**

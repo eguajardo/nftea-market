@@ -74,7 +74,7 @@ describe("Market contract", () => {
       "MultiToken"
     );
     nftContract = tokenFactory.attach(
-      await marketContract.tokenContractAddress()
+      await marketContract.nftContractAddress()
     );
 
     await marketContract
@@ -120,14 +120,14 @@ describe("Market contract", () => {
     });
   });
 
-  describe("postTokenForSale", async () => {
+  describe("postNFTForSale", async () => {
     it("Should emit ClassRegistration when posting token for sale", async () => {
       const REGISTERED_CLASS: number = 1;
 
       await expect(
         marketContract
           .connect(vendor)
-          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT)
+          .postNFTForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT)
       )
         .to.emit(nftContract, "ClassRegistration")
         .withArgs(REGISTERED_CLASS, TEST_URI_1, TEST_SUPPLY_1);
@@ -135,7 +135,7 @@ describe("Market contract", () => {
 
     it("Should fail due to unregistered vendor", async () => {
       await expect(
-        marketContract.postTokenForSale(
+        marketContract.postNFTForSale(
           TEST_URI_1,
           TEST_SUPPLY_1,
           TEST_PRICE_FIAT
@@ -147,12 +147,12 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(vendor)
-          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, ethers.constants.Zero)
+          .postNFTForSale(TEST_URI_1, TEST_SUPPLY_1, ethers.constants.Zero)
       ).to.be.revertedWith("Market: price less than 100 cents");
     });
   });
 
-  describe("buyToken", async () => {
+  describe("buyNFT", async () => {
     const TEST_PRICE_STABLECOIN: BigNumber = fiatToStablecoin(TEST_PRICE_FIAT);
     const NFT_FOR_SALE: number = 1;
     const NFT_FOR_SALE_BASE_ID: BigNumber = BigNumber.from(
@@ -198,7 +198,7 @@ describe("Market contract", () => {
     beforeEach(async () => {
       await marketContract
         .connect(vendor)
-        .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT);
+        .postNFTForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT);
 
       // All properties on a domain are optional
       signatureDomain = {
@@ -266,15 +266,15 @@ describe("Market contract", () => {
       ).to.be.revertedWith("FiatTokenV2: invalid signature");
     });
 
-    it("Should emit TokenPurchase event", async () => {
+    it("Should emit NFTPurchase event", async () => {
       const { v, r, s, nonce } = await testSignature();
 
       await expect(
         marketContract
           .connect(buyer)
-          .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s)
+          .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s)
       )
-        .to.emit(marketContract, "TokenPurchase")
+        .to.emit(marketContract, "NFTPurchase")
         .withArgs(
           buyer.address,
           NFT_FOR_SALE,
@@ -289,7 +289,7 @@ describe("Market contract", () => {
 
       await marketContract
         .connect(buyer)
-        .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s);
+        .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s);
 
       expect(
         await currencyContract.balanceOf(registeredStallPaymentSplitter.address)
@@ -301,7 +301,7 @@ describe("Market contract", () => {
 
       await marketContract
         .connect(buyer)
-        .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s);
+        .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s);
 
       expect(await currencyContract.balanceOf(buyer.address)).to.equals(
         CURRENCY_BALANCE.sub(TEST_PRICE_STABLECOIN)
@@ -313,7 +313,7 @@ describe("Market contract", () => {
 
       await marketContract
         .connect(buyer)
-        .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s);
+        .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s);
 
       expect(
         await nftContract.balanceOf(
@@ -328,7 +328,7 @@ describe("Market contract", () => {
 
       await marketContract
         .connect(buyer)
-        .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s);
+        .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s);
 
       // Accessing function using braces because of typescript
       // function overloading limitations
@@ -363,8 +363,8 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(buyer)
-          .buyToken(NFT_FOR_SALE + 1, nonce, deadline, v, r, s)
-      ).to.be.revertedWith("Market: unregistered token class");
+          .buyNFT(NFT_FOR_SALE + 1, nonce, deadline, v, r, s)
+      ).to.be.revertedWith("Market: unregistered NFT class");
     });
 
     it("Should fail due to invalid signature", async () => {
@@ -373,7 +373,7 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(buyer)
-          .buyToken(NFT_FOR_SALE, nonce, deadline + 1, v, r, s)
+          .buyNFT(NFT_FOR_SALE, nonce, deadline + 1, v, r, s)
       ).to.be.revertedWith("FiatTokenV2: invalid signature");
     });
 
@@ -387,7 +387,7 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(buyer)
-          .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s)
+          .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s)
       ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
     });
 
@@ -407,7 +407,7 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(buyer)
-          .buyToken(NFT_FOR_SALE, nonce, deadlineNow, v, r, s)
+          .buyNFT(NFT_FOR_SALE, nonce, deadlineNow, v, r, s)
       ).to.be.revertedWith("FiatTokenV2: authorization is expired");
     });
   });
@@ -426,10 +426,9 @@ describe("Market contract", () => {
     });
   });
 
-  describe("stallTokens", async () => {
+  describe("stallNFTs", async () => {
     it("Should return empty array", async () => {
-      expect(await marketContract.stallTokens(STALL_NAME_REGISTERED)).to.be
-        .empty;
+      expect(await marketContract.stallNFTs(STALL_NAME_REGISTERED)).to.be.empty;
     });
 
     it("Should return list of tokens for sale in stall", async () => {
@@ -438,19 +437,19 @@ describe("Market contract", () => {
       for (let i = 0; i < 10; i++) {
         await marketContract
           .connect(vendor)
-          .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT);
+          .postNFTForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT);
 
         classes.push(BigNumber.from(i + 1));
       }
 
       expect(
-        await marketContract.stallTokens(STALL_NAME_REGISTERED)
+        await marketContract.stallNFTs(STALL_NAME_REGISTERED)
       ).to.deep.equal(classes);
     });
 
     it("Should fail due to unregistered stall name", async () => {
       await expect(
-        marketContract.stallTokens(STALL_NAME_UNREGISTERED)
+        marketContract.stallNFTs(STALL_NAME_UNREGISTERED)
       ).to.be.revertedWith("Market: unregistered stall name");
     });
   });
