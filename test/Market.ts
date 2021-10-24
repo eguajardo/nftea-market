@@ -30,7 +30,7 @@ describe("Market contract", () => {
   const CURRENCY_BALANCE: BigNumber = ethers.utils.parseEther("1000000000");
 
   let marketContract: Market;
-  let tokenContract: MultiToken;
+  let nftContract: MultiToken;
   let currencyContract: ERC20PresetFixedSupply;
 
   let defaultSigner: SignerWithAddress;
@@ -73,7 +73,7 @@ describe("Market contract", () => {
     const tokenFactory: MultiToken__factory = await ethers.getContractFactory(
       "MultiToken"
     );
-    tokenContract = tokenFactory.attach(
+    nftContract = tokenFactory.attach(
       await marketContract.tokenContractAddress()
     );
 
@@ -129,7 +129,7 @@ describe("Market contract", () => {
           .connect(vendor)
           .postTokenForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT)
       )
-        .to.emit(tokenContract, "ClassRegistration")
+        .to.emit(nftContract, "ClassRegistration")
         .withArgs(REGISTERED_CLASS, TEST_URI_1, TEST_SUPPLY_1);
     });
 
@@ -159,6 +159,7 @@ describe("Market contract", () => {
       "340282366920938463463374607431768211456"
     );
     const NFT_NEXT_SERIAL: number = 1;
+    const PLATFORM_COMISSION: number = 0.05;
 
     let signatureDomain: object;
     let signatureTypes: Record<string, TypedDataField[]>;
@@ -218,7 +219,7 @@ describe("Market contract", () => {
         ],
       };
 
-      deadline = Math.floor(Date.now() / 1000) + 60;
+      deadline = Math.floor(Date.now() / 1000) + 300;
 
       const splitterFactory: PaymentSplitter__factory =
         await ethers.getContractFactory("PaymentSplitter");
@@ -315,11 +316,45 @@ describe("Market contract", () => {
         .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s);
 
       expect(
-        await tokenContract.balanceOf(
+        await nftContract.balanceOf(
           buyer.address,
           NFT_FOR_SALE_BASE_ID.add(NFT_NEXT_SERIAL)
         )
       ).to.equals(ethers.constants.One);
+    });
+
+    it("Should split funds after release", async () => {
+      const { v, r, s, nonce } = await testSignature();
+
+      await marketContract
+        .connect(buyer)
+        .buyToken(NFT_FOR_SALE, nonce, deadline, v, r, s);
+
+      // Accessing function using braces because of typescript
+      // function overloading limitations
+      registeredStallPaymentSplitter["release(address,address)"](
+        currencyContract.address,
+        marketContract.address
+      );
+
+      registeredStallPaymentSplitter["release(address,address)"](
+        currencyContract.address,
+        vendor.address
+      );
+
+      const vendorBalance: number = (
+        await currencyContract.balanceOf(vendor.address)
+      ).toNumber();
+      const marketBalance: number = (
+        await currencyContract.balanceOf(marketContract.address)
+      ).toNumber();
+
+      expect(vendorBalance).to.equals(
+        TEST_PRICE_STABLECOIN.toNumber() * (1 - PLATFORM_COMISSION)
+      );
+      expect(marketBalance).to.equals(
+        TEST_PRICE_STABLECOIN.toNumber() * PLATFORM_COMISSION
+      );
     });
 
     it("Should fail due to inexistent NFT class", async () => {
