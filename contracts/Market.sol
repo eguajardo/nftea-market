@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./MultiToken.sol";
 import "./IEIP3009.sol";
+import "./SponsorshipEscrow.sol";
 
 /**
  * @title Market
@@ -13,6 +14,24 @@ import "./IEIP3009.sol";
  */
 contract Market is Context {
 
+    struct NFTSponsorship {
+        uint256 sponsorshipId;
+        // Intended supply of the NFT being sponsored
+        uint128 supply;
+        // Intended price of the NFT being sponsored
+        uint256 price;
+        // Commission shares' ratio to be distributed to sponsors out of 10,000
+        // whenever the sponsored NFT is sold, e.g. a value of 725 out of 10000 is 
+        // the %7.25 comission fee
+        uint16 sponsorsShareRatio;
+        // Metadata holding the sponsorship ad details
+        string sponsorshipURI;
+    }
+
+    /**
+     * @notice Maximum number of shares of NFT payment splitters excluding 
+     * sponsorhip splitters which are calculated differently
+     */
     uint256 public constant PAYMENT_MAX_SHARES = 100000000;
 
     /**
@@ -27,6 +46,11 @@ contract Market is Context {
     uint8 public constant MINIMUM_NFT_PRICE_FIAT = 100;
 
     /**
+     * @dev Decimals of fiat currency for price conversion with stablecoins
+     */
+    uint8 public constant FIAT_DECIMALS = 2;
+
+    /**
      * @notice ERC-1155 token contract handling the NFTs for sale
      */
     MultiToken public nftContract;
@@ -37,9 +61,9 @@ contract Market is Context {
     IEIP3009 public stablecoin;
 
     /**
-     * @dev Decimals of fiat currency for price conversion with stablecoins
+     * @notice Escrow contract handling the sponsorships
      */
-    uint8 private FIAT_DECIMALS = 2;
+    SponsorshipEscrow public escrow;
 
     /**
      * @dev Decimals of the stablecoin for price conversion
@@ -82,6 +106,11 @@ contract Market is Context {
     mapping (string => PaymentSplitter) private _stallPaymentSplitters;
 
     /**
+     * @dev Mapping of stall to a mapping of sponsorship ids to sponsorship details
+     */
+    mapping (string => mapping(uint256 => NFTSponsorship)) private _stallSponsorships;
+
+    /**
      * @notice Emitted when the sender `vendor` registers a stall with the
      * name `stallName` and metadata URI `uri`
      */
@@ -101,6 +130,21 @@ contract Market is Context {
     event NFTPurchase(address indexed buyer, uint128 indexed class, string indexed stallName, uint256 id, uint256 price);
 
     /**
+     * @notice Emitted when a sponsorship with ID `sponsorshipId`, was requested
+     * from `stallName` to create an NFT with supply `supply` and price `price`
+     */
+    event Sponsorship(
+        uint256 indexed sponsorshipId,
+        string indexed stallName, 
+        uint128 supply,
+        uint256 price,
+        uint16 sponsorsShareRatio,
+        string sponsorshipURI,
+        uint256 requestedAmount,
+        uint256 deadline
+    );
+
+    /**
      * @notice Initialize contract and the NFT token contract
      * @param stablecoin_ The stablecoin contract address used as currency
      * @param stablecoinDecimals_ Amount of decimals used by the stablecoin
@@ -109,6 +153,7 @@ contract Market is Context {
         nftContract = new MultiToken("NFTea.market", "NFTEA");
         stablecoin = stablecoin_;
         stablecoinDecimals = stablecoinDecimals_;
+        escrow = new SponsorshipEscrow(stablecoin_);
     }
 
     /**
@@ -116,6 +161,19 @@ contract Market is Context {
      */
     modifier onlyVendor() {
         require(_vendorRegistered(_msgSender()), "Market: account is not a registered vendor");
+        _;
+    }
+
+    /**
+     * @dev Modifier that checks the price complies with requirements
+     */
+    modifier onlyValidPrice(uint256 price_) {
+        require(
+            price_ >= MINIMUM_NFT_PRICE_FIAT, 
+            string(abi.encodePacked(
+                "Market: price less than ", 
+                Strings.toString(MINIMUM_NFT_PRICE_FIAT),
+                " cents")));
         _;
     }
 
@@ -181,14 +239,7 @@ contract Market is Context {
         string memory uri_, 
         uint128 supply_,
         uint256 price_
-    ) external onlyVendor {
-        require(
-            price_ >= MINIMUM_NFT_PRICE_FIAT, 
-            string(abi.encodePacked(
-                "Market: price less than ", 
-                Strings.toString(MINIMUM_NFT_PRICE_FIAT),
-                " cents")));
-
+    ) external onlyVendor onlyValidPrice(price_) {
         string memory stallName = vendorStallName(_msgSender());
         uint128 class = nftContract.registerClass(uri_, supply_, _msgData());
 
@@ -210,7 +261,7 @@ contract Market is Context {
      * @param class_ Class of NFT to purchase
      * @param nonce_ Random nonce, must be the same used to sign, otherwise
      * the signature will be invalid
-     * @param deadline_ Time in unix epoch when the authorization expires.
+     * @param validBefore_ Time in unix epoch when the authorization expires.
      * Must be the same used to sign, otherwise it will be invalidated
      * @param v_ From signature
      * @param r_ From signature
@@ -221,7 +272,7 @@ contract Market is Context {
     function buyNFT(
         uint128 class_, 
         bytes32 nonce_,
-        uint256 deadline_,
+        uint256 validBefore_,
         uint8 v_, 
         bytes32 r_, 
         bytes32 s_
@@ -234,7 +285,7 @@ contract Market is Context {
             paymentAddress(class_), 
             _fiatToStablecoin(_nftPrices[class_]), 
             0, 
-            deadline_,
+            validBefore_,
             nonce_, 
             v_, r_, s_
         );
@@ -243,6 +294,63 @@ contract Market is Context {
 
         emit NFTPurchase(_msgSender(), class_, stallName, tokenId, _nftPrices[class_]);
         return tokenId;
+    }
+
+    /**
+     * @notice Requests a sponsorship to be able to deliver a NFT
+     * @param supply_ Intended supply of the NFT being sponsored
+     * @param price_ Intended price of the NFT being sponsored. Value must be 
+     * in the fiat smallest denomination, e.g. 100 (cents) equals 1 USD
+     * @param sponsorsShareRatio_ Commission shares' ratio to be distributed to
+     * sponsors out of 10,000 whenever the sponsored NFT is sold, e.g. a value
+     * of 725 out of 10000 is the %7.25 comission fee
+     * @param sponsorshipURI_ Metadata URI holding the sponsorship ad details
+     * @param requestedAmount_ The amount requested by the content creator
+     * to be able to deliver. Value must be in the fiat smallest denomination,
+     * e.g. 100 (cents) equals 1 USD
+     * @param deadline_ Timestamp as seconds in unix epoch representing the 
+     * deadline to meet the sponsorship goal.
+     */
+    function requestSponsorship(
+        uint128 supply_,
+        uint256 price_,
+        uint16 sponsorsShareRatio_,
+        string calldata sponsorshipURI_,
+        uint256 requestedAmount_,
+        uint256 deadline_
+    ) public onlyVendor onlyValidPrice(price_) {
+        require(bytes(sponsorshipURI_).length > 0, "Market: URI cannot be empty");
+
+        string memory stallName = vendorStallName(_msgSender());
+        PaymentSplitter beneficiarySplitter = _stallPaymentSplitters[stallName];
+        uint256 requestedAmountStablecoin = _fiatToStablecoin(requestedAmount_);
+
+        uint256 sponsorshipId = escrow.registerSponsortship(
+            requestedAmountStablecoin, 
+            deadline_, 
+            address(beneficiarySplitter)
+        );
+
+        NFTSponsorship memory sponsorship = NFTSponsorship({
+            sponsorshipId: sponsorshipId,
+            supply: supply_,
+            price: price_,
+            sponsorsShareRatio: sponsorsShareRatio_,
+            sponsorshipURI: sponsorshipURI_
+        });
+
+        _stallSponsorships[stallName][sponsorshipId] = sponsorship;
+
+        emit Sponsorship(
+            sponsorshipId, 
+            stallName,
+            supply_, 
+            price_, 
+            sponsorsShareRatio_, 
+            sponsorshipURI_, 
+            requestedAmount_, 
+            deadline_
+        );
     }
 
     /**
