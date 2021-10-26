@@ -12,7 +12,10 @@ dotenv.config();
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
-      { version: "0.8.3", settings: {} },
+      {
+        version: "0.8.3",
+        settings: { optimizer: { enabled: true } },
+      },
       { version: "0.6.12", settings: {} },
     ],
   },
@@ -37,6 +40,7 @@ const config: HardhatUserConfig = {
     path: "./docs",
     clear: true,
     runOnCompile: true,
+    except: ["test/"],
   },
   gasReporter: {
     currency: "USD",

@@ -105,6 +105,13 @@ contract Market is Context {
     mapping (string => PaymentSplitter) private _stallPaymentSplitters;
 
     /**
+     * @dev Mapping of NFT class to it's payment splitter if applicable
+     * If a payment splitter is found here, then its used instead of the
+     * stall payment splitter
+     */
+    mapping (uint128 => PaymentSplitter) private _nftPaymentSplitters;
+
+    /**
      * @dev Mapping of stall to a mapping of sponsorship ids to sponsorship details
      */
     mapping (string => mapping(uint256 => NFTSponsorship)) private _stallSponsorships;
@@ -239,7 +246,7 @@ contract Market is Context {
         uint128 supply_,
         uint256 price_
     ) external onlyVendor onlyValidPrice(price_) {
-        _postNFTForSale(_msgSender(), uri_, supply_, price_, _msgData());
+        _postNFTForSale(_msgSender(), uri_, supply_, price_);
     }
 
     /**
@@ -353,6 +360,13 @@ contract Market is Context {
         );
     }
 
+    /**
+     * @notice Posts a sponsored NFT for sale and therefore completing
+     * the sponsorship
+     * @param sponsorshipId_ The ID of the sponsorship that raised funds
+     * for this NFT creation
+     * @param uri_ The NFT metadata uri_
+     */
     function postSponsoredNFTForSale(
         uint256 sponsorshipId_, 
         string calldata uri_
@@ -364,37 +378,60 @@ contract Market is Context {
             "Market: sponsorship not registered to stall"
         );
 
-        _postNFTForSale(
+        uint128 class = _postNFTForSale(
             _msgSender(), 
             uri_, 
             nftSponsorship.supply, 
-            nftSponsorship.price, 
-            _msgData()
+            nftSponsorship.price
         );
 
-        PaymentSplitter sponsorsSplitter = escrow.completeSponsorship(sponsorshipId_);
+        (
+            address[] memory sponsors, 
+            uint256[] memory deposits,
+            uint256 totalFunds
+        ) = escrow.completeSponsorship(sponsorshipId_);
 
-        address[] memory payees = new address[](3);
+        // To add platform and creator shares, a resized array is needed
+        uint256 newSize = sponsors.length + 2;
+
+        address[] memory payees = new address[](newSize);
         payees[0] = address(this);
         payees[1] = _msgSender();
-        payees[2] = address(sponsorsSplitter);
+        for (uint256 i = 2; i < newSize; i++) {
+            payees[i] = sponsors[i - 2];
+        }
 
-        uint256[] memory shares = new uint256[](3);
-        shares[0] = PLATFORM_COMISSION_SHARES;
-        shares[1] = PAYMENT_MAX_SHARES - PLATFORM_COMISSION_SHARES - nftSponsorship.sponsorsShares;
-        shares[2] = nftSponsorship.sponsorsShares;
+        uint256 vendorComissionShares = PAYMENT_MAX_SHARES - PLATFORM_COMISSION_SHARES - nftSponsorship.sponsorsShares;
+        uint256[] memory shares = new uint256[](newSize);
+        // Multiply by totalFunds to normalize with individual sponsors contribution
+        shares[0] = totalFunds * PLATFORM_COMISSION_SHARES;
+        shares[1] = totalFunds * vendorComissionShares;
+        for (uint256 i = 2; i < newSize; i++) {
+            // Multiply deposits by the total shares portion distributed to all 
+            // sponsors to normalize shares with platform and vendor fees
+            shares[i] = deposits[i - 2] * nftSponsorship.sponsorsShares;
+        }
+
+        _nftPaymentSplitters[class] = new PaymentSplitter(payees, shares);
     }
 
     /**
      * @notice Returns the payment address to use when purchasing NFT `class_`
      * @param class_ The NFT class associated with the payment address
      * @return the address of the PaymentSplitter to use when purchasing
-     * this NFT `class_`
+     * this NFT `class_`. If the NFT was sponsored, then return the payment
+     * splitter address corresponding to the sponsorship, otherwise return
+     * the stall payment splitter
      */
     function paymentAddress(uint128 class_) public view returns (address) {
         require(bytes(_nftStalls[class_]).length > 0, "Market: unregistered NFT class");
 
-        return address(_stallPaymentSplitters[_nftStalls[class_]]);
+        address splitterAddress = address(_nftPaymentSplitters[class_]);
+        if (splitterAddress == address(0)) {
+            splitterAddress = address(_stallPaymentSplitters[_nftStalls[class_]]);
+        }
+
+        return splitterAddress;
     }
 
     /**
@@ -471,23 +508,24 @@ contract Market is Context {
      * @param supply_ Max supply for the NFT. Zero if the supply is unlimited
      * @param price_ The NFT's price. Must be >= than `MINIMUM_NFT_PRICE_FIAT`
      * value is in the fiat smallest denomination, e.g. 100 equals 1 USD
-     * @param data_ Additional data
+     * @return the NFT class posted for sale
      */
     function _postNFTForSale(
         address vendor_,
         string memory uri_, 
         uint128 supply_,
-        uint256 price_,
-        bytes memory data_
-    ) internal {
+        uint256 price_
+    ) internal returns (uint128) {
         string memory stallName = vendorStallName(vendor_);
-        uint128 class = nftContract.registerClass(uri_, supply_, data_);
+        uint128 class = nftContract.registerClass(uri_, supply_, _msgData());
 
         _stallNFTs[stallName].push(class);
         _nftPrices[class] = price_;
         _nftStalls[class] = stallName;
 
         emit NFTForSale(stallName, vendor_, price_, class, supply_);
+
+        return class;
     }
 
 }

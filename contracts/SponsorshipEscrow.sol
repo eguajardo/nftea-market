@@ -178,12 +178,16 @@ contract SponsorshipEscrow is Ownable {
      * them to the corresponding beneficiary and therefore inactivating the
      * sponsorship
      * @param sponsorshipId_ The sponsorship's ID from where to withdraw
-     * @return a PaymentSplitter contract assigning the corresponding shares
-     * to each contributor to the sponsorship
+     * @return the list of sponsors, a list of the deposits matching the 
+     * sponsors' list and the totla funds raised
      */
     function completeSponsorship(
         uint256 sponsorshipId_
-    ) onlyOwner external returns (PaymentSplitter) {
+    ) onlyOwner external returns (
+        address[] memory,
+        uint256[] memory,
+        uint256
+    ) {
         Sponsorship storage sponsorship = _sponsorships[sponsorshipId_];
 
         require(sponsorship.beneficiary != address(0), "SponsorshipEscrow: sponsorship id does not exits");
@@ -197,13 +201,17 @@ contract SponsorshipEscrow is Ownable {
         emit SponsorshipComplete(sponsorshipId_, sponsorship.totalFunds);
 
         uint256 sponsorsQty = sponsorship.sponsors.length;
-        uint256[] memory shares = new uint256[](sponsorsQty);
+        uint256[] memory deposits = new uint256[](sponsorsQty);
 
         for (uint256 i = 0; i < sponsorsQty; i++) {
-            shares[i] = sponsorship.deposits[sponsorship.sponsors[i]];
+            deposits[i] = sponsorship.deposits[sponsorship.sponsors[i]];
         }
 
-        return new PaymentSplitter(sponsorship.sponsors, shares);
+        return (
+            sponsorship.sponsors, 
+            deposits,
+            sponsorship.totalFunds
+        );
     }
 
     /**
