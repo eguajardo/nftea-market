@@ -3,6 +3,7 @@ pragma solidity ^0.8.3;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./IEIP3009.sol";
 
 /**
@@ -62,7 +63,7 @@ contract SponsorshipEscrow is Ownable {
      * beneficiary after reaching the amount requested for the sponsorship
      * `sponsorshipId`
      */
-    event BeneficiaryWithdraw(uint256 indexed sponsorshipId, uint256 funds);
+    event SponsorshipComplete(uint256 indexed sponsorshipId, uint256 funds);
 
     /**
      * @notice Emitted when a refund is made to `sponsor` for the amount 
@@ -173,12 +174,16 @@ contract SponsorshipEscrow is Ownable {
     }
 
     /**
-     * @notice Withdraw the funds raised for the sponsorship and trhansfer
+     * @notice Withdraw the funds raised for the sponsorship and transfer
      * them to the corresponding beneficiary and therefore inactivating the
      * sponsorship
      * @param sponsorshipId_ The sponsorship's ID from where to withdraw
+     * @return a PaymentSplitter contract assigning the corresponding shares
+     * to each contributor to the sponsorship
      */
-    function beneficiaryWithdraw(uint256 sponsorshipId_) external {
+    function completeSponsorship(
+        uint256 sponsorshipId_
+    ) onlyOwner external returns (PaymentSplitter) {
         Sponsorship storage sponsorship = _sponsorships[sponsorshipId_];
 
         require(sponsorship.beneficiary != address(0), "SponsorshipEscrow: sponsorship id does not exits");
@@ -189,7 +194,16 @@ contract SponsorshipEscrow is Ownable {
 
         stablecoin.transfer(sponsorship.beneficiary, sponsorship.totalFunds);
 
-        emit BeneficiaryWithdraw(sponsorshipId_, sponsorship.totalFunds);
+        emit SponsorshipComplete(sponsorshipId_, sponsorship.totalFunds);
+
+        uint256 sponsorsQty = sponsorship.sponsors.length;
+        uint256[] memory shares = new uint256[](sponsorsQty);
+
+        for (uint256 i = 0; i < sponsorsQty; i++) {
+            shares[i] = sponsorship.deposits[sponsorship.sponsors[i]];
+        }
+
+        return new PaymentSplitter(sponsorship.sponsors, shares);
     }
 
     /**
