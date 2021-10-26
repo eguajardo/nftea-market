@@ -1,9 +1,9 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TransactionResponse } from "@ethersproject/providers";
 import { BigNumber } from "@ethersproject/bignumber";
-import { TypedDataField } from "@ethersproject/abstract-signer";
+import { signAuthorization } from "./utils/signatureUtils";
 
 import {
   Market,
@@ -18,7 +18,6 @@ import {
 
 describe("Market contract", () => {
   const STABLECOIN_NAME: string = "TEST";
-  const STABLECOIN_VERSION: string = "2";
   const STALL_NAME_REGISTERED: string = "testStallName1";
   const STALL_NAME_UNREGISTERED: string = "testStallName2";
   const TEST_URI_1: string = "testURI1";
@@ -161,34 +160,18 @@ describe("Market contract", () => {
     const NFT_NEXT_SERIAL: number = 1;
     const PLATFORM_COMISSION: number = 0.05;
 
-    let signatureDomain: object;
-    let signatureTypes: Record<string, TypedDataField[]>;
-    let deadline: number;
+    let authExpiration: number;
     let registeredStallPaymentSplitter: PaymentSplitter;
-
-    const signAuthorization = async (value: object) => {
-      const signature = await buyer._signTypedData(
-        signatureDomain,
-        signatureTypes,
-        value
-      );
-
-      const v = "0x" + signature.slice(130, 132);
-      const r = signature.slice(0, 66);
-      const s = "0x" + signature.slice(66, 130);
-
-      return { v, r, s };
-    };
 
     const testSignature = async () => {
       const nonce: Uint8Array = ethers.utils.randomBytes(32);
 
-      const { v, r, s } = await signAuthorization({
+      const { v, r, s } = await signAuthorization(buyer, currencyContract, {
         from: buyer.address,
         to: await marketContract.paymentAddress(NFT_FOR_SALE),
         value: TEST_PRICE_STABLECOIN,
         validAfter: 0,
-        validBefore: deadline,
+        validBefore: authExpiration,
         nonce: nonce,
       });
 
@@ -200,26 +183,10 @@ describe("Market contract", () => {
         .connect(vendor)
         .postNFTForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT);
 
-      // All properties on a domain are optional
-      signatureDomain = {
-        name: STABLECOIN_NAME,
-        version: STABLECOIN_VERSION,
-        chainId: 31337,
-        verifyingContract: currencyContract.address,
-      };
-      // The named list of all type definitions
-      signatureTypes = {
-        TransferWithAuthorization: [
-          { name: "from", type: "address" },
-          { name: "to", type: "address" },
-          { name: "value", type: "uint256" },
-          { name: "validAfter", type: "uint256" },
-          { name: "validBefore", type: "uint256" },
-          { name: "nonce", type: "bytes32" },
-        ],
-      };
-
-      deadline = Math.floor(Date.now() / 1000) + 300;
+      const blockNumber: number = await ethers.provider.getBlockNumber();
+      const timestamp: number = (await ethers.provider.getBlock(blockNumber))
+        .timestamp;
+      authExpiration = timestamp + 300; // 5 min from block timestamp
 
       const splitterFactory: PaymentSplitter__factory =
         await ethers.getContractFactory("PaymentSplitter");
@@ -236,7 +203,7 @@ describe("Market contract", () => {
         registeredStallPaymentSplitter.address,
         TEST_PRICE_STABLECOIN,
         0,
-        deadline,
+        authExpiration,
         nonce,
         v,
         r,
@@ -257,7 +224,7 @@ describe("Market contract", () => {
           defaultSigner.address,
           TEST_PRICE_STABLECOIN,
           0,
-          deadline,
+          authExpiration,
           nonce,
           v,
           r,
@@ -272,7 +239,7 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(buyer)
-          .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s)
+          .buyNFT(NFT_FOR_SALE, nonce, authExpiration, v, r, s)
       )
         .to.emit(marketContract, "NFTPurchase")
         .withArgs(
@@ -289,7 +256,7 @@ describe("Market contract", () => {
 
       await marketContract
         .connect(buyer)
-        .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s);
+        .buyNFT(NFT_FOR_SALE, nonce, authExpiration, v, r, s);
 
       expect(
         await currencyContract.balanceOf(registeredStallPaymentSplitter.address)
@@ -301,7 +268,7 @@ describe("Market contract", () => {
 
       await marketContract
         .connect(buyer)
-        .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s);
+        .buyNFT(NFT_FOR_SALE, nonce, authExpiration, v, r, s);
 
       expect(await currencyContract.balanceOf(buyer.address)).to.equals(
         CURRENCY_BALANCE.sub(TEST_PRICE_STABLECOIN)
@@ -313,7 +280,7 @@ describe("Market contract", () => {
 
       await marketContract
         .connect(buyer)
-        .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s);
+        .buyNFT(NFT_FOR_SALE, nonce, authExpiration, v, r, s);
 
       expect(
         await nftContract.balanceOf(
@@ -328,7 +295,7 @@ describe("Market contract", () => {
 
       await marketContract
         .connect(buyer)
-        .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s);
+        .buyNFT(NFT_FOR_SALE, nonce, authExpiration, v, r, s);
 
       // Accessing function using braces because of typescript
       // function overloading limitations
@@ -363,7 +330,7 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(buyer)
-          .buyNFT(NFT_FOR_SALE + 1, nonce, deadline, v, r, s)
+          .buyNFT(NFT_FOR_SALE + 1, nonce, authExpiration, v, r, s)
       ).to.be.revertedWith("Market: unregistered NFT class");
     });
 
@@ -373,7 +340,7 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(buyer)
-          .buyNFT(NFT_FOR_SALE, nonce, deadline + 1, v, r, s)
+          .buyNFT(NFT_FOR_SALE, nonce, authExpiration + 1, v, r, s)
       ).to.be.revertedWith("FiatTokenV2: invalid signature");
     });
 
@@ -387,27 +354,21 @@ describe("Market contract", () => {
       await expect(
         marketContract
           .connect(buyer)
-          .buyNFT(NFT_FOR_SALE, nonce, deadline, v, r, s)
+          .buyNFT(NFT_FOR_SALE, nonce, authExpiration, v, r, s)
       ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
     });
 
-    it("Should fail due to expired deadline", async () => {
-      const nonce: Uint8Array = ethers.utils.randomBytes(32);
-      const deadlineNow = Math.floor(Date.now() / 1000);
+    it("Should fail due to expired authorization", async () => {
+      await network.provider.send("evm_setNextBlockTimestamp", [
+        authExpiration,
+      ]);
 
-      const { v, r, s } = await signAuthorization({
-        from: buyer.address,
-        to: await marketContract.paymentAddress(NFT_FOR_SALE),
-        value: TEST_PRICE_STABLECOIN,
-        validAfter: 0,
-        validBefore: deadlineNow,
-        nonce: nonce,
-      });
+      const { v, r, s, nonce } = await testSignature();
 
       await expect(
         marketContract
           .connect(buyer)
-          .buyNFT(NFT_FOR_SALE, nonce, deadlineNow, v, r, s)
+          .buyNFT(NFT_FOR_SALE, nonce, authExpiration, v, r, s)
       ).to.be.revertedWith("FiatTokenV2: authorization is expired");
     });
   });

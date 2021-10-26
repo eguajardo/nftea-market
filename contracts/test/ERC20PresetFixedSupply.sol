@@ -89,4 +89,8 @@ contract ERC20PresetFixedSupply is ERC20Burnable, EIP3009 {
             s
         );
     }
+
+    function version() public pure returns (string memory) {
+        return "2";
+    }
 }

@@ -54,9 +54,16 @@ contract SponsorshipEscrow is Ownable {
 
     /**
      * @notice Emitted when `sponsor` made a deposit of `amount` to the 
-     * sponsorship `sponsorshipId`
+     * sponsorship `sponsorshipId`. Sponsor specific deposits are accumulated
+     * and shown as `sponsorsSum`, i.e. if the sponsor has made a single
+     * deposit then `amount` equals `sponsorsSum`
      */
-    event Deposit(uint256 indexed sponsorshipId, address indexed sponsor, uint256 amount);
+    event Deposit(uint256 indexed sponsorshipId, address indexed sponsor, uint256 amount, uint256 sponsorSum);
+
+    /**
+     * @notice Emitted when the sponsorship `sponsorshipId` is cancelled
+     */
+    event Cancel(uint256 indexed sponsorshipId);
 
     /**
      * @notice Emitted when the amount `funds` raised are transferred to the
@@ -170,7 +177,27 @@ contract SponsorshipEscrow is Ownable {
         sponsorship.deposits[_msgSender()] += amount_;
         sponsorship.totalFunds += amount_;
 
-        emit Deposit(sponsorshipId_, _msgSender(), amount_);
+        emit Deposit(
+            sponsorshipId_, 
+            _msgSender(), 
+            amount_, 
+            sponsorship.deposits[_msgSender()]
+        );
+    }
+
+    /**
+     * @notice Cancels the specified sponsorship
+     * @param sponsorshipId_ The ID of the sponsorship to be cancelled
+     */
+    function cancel(uint256 sponsorshipId_) external onlyOwner {
+        Sponsorship storage sponsorship = _sponsorships[sponsorshipId_];
+
+        require(sponsorship.beneficiary != address(0), "SponsorshipEscrow: sponsorship id does not exits");
+        require(sponsorship.active, "SponsorshipEscrow: sponsorship already inactive");
+
+        sponsorship.active = false;
+
+        emit Cancel(sponsorshipId_);
     }
 
     /**
@@ -183,7 +210,7 @@ contract SponsorshipEscrow is Ownable {
      */
     function completeSponsorship(
         uint256 sponsorshipId_
-    ) onlyOwner external returns (
+    ) external onlyOwner returns (
         address[] memory,
         uint256[] memory,
         uint256
@@ -224,8 +251,14 @@ contract SponsorshipEscrow is Ownable {
         Sponsorship storage sponsorship = _sponsorships[sponsorshipId_];
 
         require(sponsorship.beneficiary != address(0), "SponsorshipEscrow: sponsorship id does not exits");
-        require(block.timestamp > sponsorship.deadline, "SponsorshipEscrow: sponsorship not expired");
-        require(sponsorship.totalFunds < sponsorship.requestedAmount, "SponsorshipEscrow: requested amount raised");
+        if (sponsorship.active) {
+            require(
+                block.timestamp > sponsorship.deadline, 
+                "SponsorshipEscrow: sponsorship active but not expired");
+            require(
+                sponsorship.totalFunds < sponsorship.requestedAmount, 
+                "SponsorshipEscrow: sponsorship active and requested amount goal met");
+        }
 
         uint256 payment = sponsorship.deposits[sponsor_];
         require(payment > 0, "SponsorshipEscrow: nothing to withdraw");
