@@ -184,13 +184,6 @@ contract Market is Context {
     }
 
     /**
-     * @notice Returns the address of the ERC1155 contract address
-     */
-    function nftContractAddress() external view returns (address) {
-        return address(nftContract);
-    }
-
-    /**
      * @notice Returns the URI corresponding to `stallName_`
      * @param stallName_ Stall name whose URI is being queried
      * @return the URI pointing to the stall's metadata
@@ -326,7 +319,6 @@ contract Market is Context {
             sponsorsShares_ + PLATFORM_COMISSION_SHARES < PAYMENT_MAX_SHARES,
             "Market: sponsor shares + platform shares exceeds maximum"
         );
-        
 
         string memory stallName = vendorStallName(_msgSender());
         PaymentSplitter beneficiarySplitter = _stallPaymentSplitters[stallName];

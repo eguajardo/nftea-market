@@ -2,27 +2,20 @@ import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "@ethersproject/bignumber";
-import { signAuthorization } from "./utils/signatureUtils";
+import {
+  signAuthorization,
+  daysFromBlock,
+  initializeCurrencyContract,
+} from "./utils/testUtils";
 
 import {
   ERC20PresetFixedSupply,
-  ERC20PresetFixedSupply__factory,
   SponsorshipEscrow,
   SponsorshipEscrow__factory,
 } from "../typechain";
 
-const daysFromBlock = async (days: number) => {
-  const blockNumber: number = await ethers.provider.getBlockNumber();
-  const timestamp: number = (await ethers.provider.getBlock(blockNumber))
-    .timestamp;
-  return timestamp + 86400 * days;
-};
-
 describe("SponsorshipEscrow contract", async () => {
-  const STABLECOIN_NAME: string = "TEST";
-  const STABLECOIN_DECIMALS: number = 6;
-  const CURRENCY_SUPPLY: BigNumber = ethers.utils.parseEther("1000000000");
-  const ACOUNT_BALANCE: BigNumber = ethers.utils.parseEther("200000000");
+  const ACCOUNT_BALANCE: BigNumber = BigNumber.from("500000000"); // 200 USDC
   const TEST_REQUESTED_AMOUNT: BigNumber = BigNumber.from("200000000"); // 200 USDC
   const TEST_DEPOSIT_AMOUNT: BigNumber = BigNumber.from("15000000"); // 15 USDC
   const TEST_SPONSORSHIP_ID: BigNumber = ethers.constants.Zero;
@@ -34,7 +27,6 @@ describe("SponsorshipEscrow contract", async () => {
 
   let beneficiary: SignerWithAddress;
   let escrowOwner: SignerWithAddress;
-  let currencyOwner: SignerWithAddress;
   let sponsor1: SignerWithAddress;
   let sponsor2: SignerWithAddress;
   let sponsor3: SignerWithAddress;
@@ -106,7 +98,6 @@ describe("SponsorshipEscrow contract", async () => {
     [
       beneficiary,
       escrowOwner,
-      currencyOwner,
       sponsor1,
       sponsor2,
       sponsor3,
@@ -114,16 +105,13 @@ describe("SponsorshipEscrow contract", async () => {
       sponsor5,
     ] = await ethers.getSigners();
 
-    const currencyFactory: ERC20PresetFixedSupply__factory =
-      await ethers.getContractFactory("ERC20PresetFixedSupply", currencyOwner);
-    currencyContract = await currencyFactory.deploy(
-      STABLECOIN_NAME,
-      STABLECOIN_NAME,
-      CURRENCY_SUPPLY,
-      currencyOwner.address,
-      STABLECOIN_DECIMALS
-    );
-    await currencyContract.deployed();
+    currencyContract = await initializeCurrencyContract(ACCOUNT_BALANCE, [
+      sponsor1,
+      sponsor2,
+      sponsor3,
+      sponsor4,
+      sponsor5,
+    ]);
 
     const escrowFactory: SponsorshipEscrow__factory =
       await ethers.getContractFactory("SponsorshipEscrow", escrowOwner);
@@ -132,12 +120,6 @@ describe("SponsorshipEscrow contract", async () => {
     await escrowContract.deployed();
 
     authExpiration = await daysFromBlock(1);
-
-    await currencyContract.transfer(sponsor1.address, ACOUNT_BALANCE);
-    await currencyContract.transfer(sponsor2.address, ACOUNT_BALANCE);
-    await currencyContract.transfer(sponsor3.address, ACOUNT_BALANCE);
-    await currencyContract.transfer(sponsor4.address, ACOUNT_BALANCE);
-    await currencyContract.transfer(sponsor5.address, ACOUNT_BALANCE);
   });
 
   describe("registerSponsortship", async () => {
@@ -428,7 +410,7 @@ describe("SponsorshipEscrow contract", async () => {
       await escrowContract.refund(TEST_SPONSORSHIP_ID, sponsor1.address);
 
       expect(await currencyContract.balanceOf(sponsor1.address)).to.deep.equals(
-        ACOUNT_BALANCE
+        ACCOUNT_BALANCE
       );
     });
 
