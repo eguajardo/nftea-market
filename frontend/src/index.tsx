@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "index.css";
+import "theme/assets/scss/blk-design-system-pro-react.scss?v1.2.0";
 import App from "App";
 import reportWebVitals from "reportWebVitals";
 import { ChainId, DAppProvider } from "@usedapp/core";
