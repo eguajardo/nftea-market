@@ -1,10 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "theme/assets/scss/blk-design-system-pro-react.scss?v1.2.0";
 import App from "App";
 import reportWebVitals from "reportWebVitals";
 import { ChainId, DAppProvider } from "@usedapp/core";
 import { BrowserRouter } from "react-router-dom";
+
+import "theme/assets/scss/blk-design-system-pro-react.scss?v1.2.0";
+import "theme/assets/css/nucleo-icons.css";
 
 let readOnlyChainId;
 if (window.location.hostname.includes("localhost")) {
