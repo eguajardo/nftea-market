@@ -1,6 +1,7 @@
 import { artifacts, ethers, network } from "hardhat";
 import { Contract } from "ethers";
 import { BigNumber } from "@ethersproject/bignumber";
+import { contracts } from "../helpers/contracts";
 import {
   ERC20PresetFixedSupply,
   ERC20PresetFixedSupply__factory,
@@ -10,6 +11,7 @@ import {
 const NETWORKS_LOCAL: Array<string> = ["hardhat", "localhost"];
 const NETWORKS_TESTNETS: Array<string> = [...NETWORKS_LOCAL, "mumbai"];
 const ERC20_CURRENCY_DECIMALS: number = 2;
+const CONTRACTS_FILENAME: string = "contracts.ts";
 
 const deployedContracts: Map<string, Contract> = new Map();
 
@@ -76,8 +78,8 @@ const deployTestCurrency = async () => {
 
 const saveContractFiles = () => {
   const fs = require("fs");
-  const frontEndDir = __dirname + "/../frontend/src/helpers";
-  const backEndDir = __dirname + "/../helpers";
+  const frontEndDir = __dirname + "/../frontend/src/helpers/";
+  const backEndDir = __dirname + "/../helpers/";
 
   if (!fs.existsSync(frontEndDir)) {
     fs.mkdirSync(frontEndDir);
@@ -87,7 +89,7 @@ const saveContractFiles = () => {
     fs.mkdirSync(backEndDir);
   }
 
-  let newContracts: any = { /**...contracts, */ [network.name]: {} };
+  let newContracts: any = { ...contracts, [network.name]: {} };
   deployedContracts.forEach((value: Contract, key: string) => {
     const artifact = artifacts.readArtifactSync(key);
 
@@ -99,17 +101,13 @@ const saveContractFiles = () => {
     console.log(key, "contract deployed at address:", value.address);
   });
 
-  fs.writeFileSync(
-    frontEndDir + "/contracts.js",
-    "export const contracts = " + JSON.stringify(newContracts, null, 2) + ";"
-  );
-
-  fs.writeFileSync(
-    backEndDir + "/contracts.ts",
+  const content: string =
     "export const contracts: object = " +
-      JSON.stringify(newContracts, null, 2) +
-      ";"
-  );
+    JSON.stringify(newContracts, null, 2) +
+    ";";
+
+  fs.writeFileSync(frontEndDir + CONTRACTS_FILENAME, content);
+  fs.writeFileSync(backEndDir + CONTRACTS_FILENAME, content);
 };
 
 main()
