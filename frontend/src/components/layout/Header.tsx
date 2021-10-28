@@ -1,9 +1,16 @@
+import { useEthers } from "@usedapp/core";
 import { Button, Col, Container, Nav, Navbar, Row } from "react-bootstrap";
 
 function Header() {
+  const { activateBrowserWallet, account } = useEthers();
+
+  const connect = () => {
+    activateBrowserWallet();
+  };
+
   return (
     <div>
-      <Navbar bg="default" expand="lg" className="fixed-top">
+      <Navbar bg="default" expand="lg">
         <Container>
           <Navbar.Brand href="/">NFTea•Market</Navbar.Brand>
           <Navbar.Toggle aria-controls="navigation">
@@ -31,15 +38,28 @@ function Header() {
                 <Nav.Link href="/">Explore</Nav.Link>
               </Nav.Item>
               <Nav.Item>
-                <Button
-                  className="nav-link"
-                  color="default"
-                  href="/"
-                  size="sm"
-                  target="_blank"
-                >
-                  <p>Open NFT Stall</p>
-                </Button>
+                {!account && (
+                  <Button
+                    className="nav-link"
+                    color="default"
+                    onClick={connect}
+                    size="sm"
+                    target="_blank"
+                  >
+                    <p>Connect</p>
+                  </Button>
+                )}
+                {account && (
+                  <Button
+                    className="nav-link"
+                    color="default"
+                    href="/"
+                    size="sm"
+                    target="_blank"
+                  >
+                    <p>Open NFT Stall</p>
+                  </Button>
+                )}
               </Nav.Item>
             </Nav>
           </Navbar.Collapse>
