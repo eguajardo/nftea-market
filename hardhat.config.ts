@@ -4,10 +4,13 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-docgen";
 import "hardhat-gas-reporter";
+import { utils } from "ethers";
 
 import * as dotenv from "dotenv";
 
 dotenv.config();
+
+const TEST_ACCOUNT_BALANCE = utils.parseEther("1000").toString();
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -22,11 +25,33 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://rpc-mumbai.maticvigil.com",
+        url: process.env.RPC_NODE || "https://rpc-mumbai.maticvigil.com",
       },
+      accounts: [
+        {
+          privateKey: process.env.TESTNET_ACCOUNT_1!,
+          balance: TEST_ACCOUNT_BALANCE,
+        },
+        {
+          privateKey: process.env.TESTNET_ACCOUNT_2!,
+          balance: TEST_ACCOUNT_BALANCE,
+        },
+        {
+          privateKey: process.env.TESTNET_ACCOUNT_3!,
+          balance: TEST_ACCOUNT_BALANCE,
+        },
+        {
+          privateKey: process.env.TESTNET_ACCOUNT_4!,
+          balance: TEST_ACCOUNT_BALANCE,
+        },
+        {
+          privateKey: process.env.TESTNET_ACCOUNT_5!,
+          balance: TEST_ACCOUNT_BALANCE,
+        },
+      ],
     },
     mumbai: {
-      url: "https://rpc-mumbai.maticvigil.com",
+      url: process.env.RPC_NODE || "https://rpc-mumbai.maticvigil.com",
       accounts: [
         process.env.TESTNET_ACCOUNT_1!,
         process.env.TESTNET_ACCOUNT_2!,

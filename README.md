@@ -29,6 +29,42 @@ TESTNET_ACCOUNT_5=[private key 5]
 <br />
 <br />
 
+## Run and deploy
+
+First we install the dependencies
+
+```
+yarn
+```
+
+### 1) Start local node (Skip step if running in testnet or mainet)
+
+Run the following to start a local node fork of mumbai polygon testnet
+
+```
+npx hardhat node
+```
+
+The terminal will display some accounts which you can use to import them to Metamask for testing
+
+### 2) Smart contract deployment
+
+The following command will deploy the smart contracts to the node started in step 1. Replace "localhost" for "mumbai" to deploy to Mumbai testnet
+
+```
+npx hardhat run scripts/deploy.ts --network localhost
+```
+
+### 3) Start React app
+
+To run the local server to serve the react application, run the following commands
+
+```
+# Navigate to frontend app
+cd frontend
+yarn start
+```
+
 ---
 
 > Project built using [BLK• Design System PRO React](https://www.creative-tim.com/product/blk-design-system-pro-react) theme from Creative Tim.
