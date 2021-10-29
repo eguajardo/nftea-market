@@ -1,5 +1,6 @@
 import { useEthers } from "@usedapp/core";
 import { Button, Col, Container, Nav, Navbar, Row } from "react-bootstrap";
+import { NavLink } from "react-router-dom";
 
 function Header() {
   const { activateBrowserWallet, account } = useEthers();
@@ -10,7 +11,7 @@ function Header() {
 
   return (
     <div>
-      <Navbar bg="default" expand="lg">
+      <Navbar bg="default" expand="lg" variant="dark">
         <Container>
           <Navbar.Brand href="/">NFTea•Market</Navbar.Brand>
           <Navbar.Toggle aria-controls="navigation">
@@ -22,9 +23,7 @@ function Header() {
             <div className="navbar-collapse-header">
               <Row>
                 <Col className="collapse-brand" xs="6">
-                  <a href="/" onClick={(e) => e.preventDefault()}>
-                    NFTea•Market
-                  </a>
+                  <a href="/">NFTea•Market</a>
                 </Col>
                 <Col className="collapse-close text-right" xs="6">
                   <Navbar.Toggle aria-controls="navigation">
@@ -40,25 +39,20 @@ function Header() {
               <Nav.Item>
                 {!account && (
                   <Button
-                    className="nav-link"
+                    className="nav-link "
                     color="default"
                     onClick={connect}
                     size="sm"
                     target="_blank"
+                    variant="warning"
                   >
                     <p>Connect</p>
                   </Button>
                 )}
                 {account && (
-                  <Button
-                    className="nav-link"
-                    color="default"
-                    href="/"
-                    size="sm"
-                    target="_blank"
-                  >
+                  <NavLink to="/register" className="btn btn-warning btn-sm">
                     <p>Open NFT Stall</p>
-                  </Button>
+                  </NavLink>
                 )}
               </Nav.Item>
             </Nav>

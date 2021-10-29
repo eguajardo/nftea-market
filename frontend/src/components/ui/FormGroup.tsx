@@ -1,0 +1,92 @@
+import { useMemo } from "react";
+
+function FormGroup(props: any) {
+  let className =
+    props.formField.type === "file" ? "custom-file-input" : "form-control";
+
+  if (props.hasError) {
+    className += " is-invalid";
+  }
+
+  const [previewSrc, fileInputLabel] = useMemo(() => {
+    let source = props.preview?.source;
+    let label = "[Choose file]";
+    if (props.formField.enteredFiles && props.formField.enteredFiles[0]) {
+      source = URL.createObjectURL(props.formField.enteredFiles[0]);
+      label = props.formField.enteredFiles[0].name;
+    } else if (source) {
+      source = props.preview.source;
+      label = "[Change file]";
+    }
+
+    return [source, label];
+  }, [props.formField.enteredFiles, props.preview?.source]);
+
+  console.log("previewSrc", previewSrc);
+
+  let inputField;
+  if (props.formField.type === "textarea") {
+    inputField = (
+      <textarea
+        name={props.formField.id}
+        id={props.formField.id}
+        onChange={props.valueChangeHandler}
+        onBlur={props.inputBlurHandler}
+        value={props.formField.value ? props.formField.value : ""}
+        placeholder={props.formField.placeholder}
+        rows={props.formField.rows}
+        className={className}
+        disabled={props.disabled}
+      />
+    );
+  } else {
+    inputField = (
+      <input
+        type={props.formField.type}
+        name={props.formField.id}
+        id={props.formField.id}
+        onChange={props.valueChangeHandler}
+        onBlur={props.inputBlurHandler}
+        value={props.formField.value ? props.formField.value : ""}
+        placeholder={props.formField.placeholder}
+        step={props.formField.step}
+        className={className}
+        disabled={props.disabled}
+        accept="image/*, video/mp4"
+      />
+    );
+  }
+
+  return (
+    <div className="form-group">
+      {props.formField.label && (
+        <label htmlFor={props.formField.id}>{props.formField.label}</label>
+      )}
+      {previewSrc && (
+        <div>
+          <video
+            key={previewSrc}
+            autoPlay={props.preview?.autoPlay}
+            loop={props.preview?.loop}
+            controls={props.preview?.controls}
+            poster={previewSrc}
+            className={props.preview?.className}
+          >
+            <source src={previewSrc} />
+          </video>
+        </div>
+      )}
+      <div className={props.formField.type === "file" ? "custom-file" : ""}>
+        {inputField}
+        {props.formField.type === "file" && (
+          <label className="custom-file-label" htmlFor="customFile">
+            {fileInputLabel}
+          </label>
+        )}
+        <div className="invalid-feedback">{props.hasError}</div>
+      </div>
+    </div>
+  );
+}
+
+export default FormGroup;

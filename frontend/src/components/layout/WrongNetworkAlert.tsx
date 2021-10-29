@@ -1,4 +1,4 @@
-import { contracts } from "../../helpers/contracts";
+import { contracts } from "helpers/contracts";
 import { useEthers, getChainName } from "@usedapp/core";
 import { useEffect, useState } from "react";
 import { Alert } from "react-bootstrap";
