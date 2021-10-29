@@ -1,7 +1,7 @@
 export const contracts: any = {
   "localhost": {
     "ERC20PresetFixedSupply": {
-      "address": "0xdB4D377Ef2b41b6C986fc9b447CB5B5bBD618674",
+      "address": "0xBf2B4EDa47817f0682F0c0eD894054D3642B7248",
       "abi": [
         {
           "inputs": [
@@ -571,7 +571,7 @@ export const contracts: any = {
       ]
     },
     "Market": {
-      "address": "0x2aa13CF50C8EB5Ea05cb095Be616B533CE8A782b",
+      "address": "0x57075bcCFA3f4D76a3f667Cc8Dd48CaD7844DFE0",
       "abi": [
         {
           "inputs": [

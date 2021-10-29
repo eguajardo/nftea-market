@@ -1,90 +1,68 @@
-import { useMemo } from "react";
+import { Form, InputGroup } from "react-bootstrap";
+import { FormField } from "types/forms";
 
-function FormGroup(props: any) {
-  let className =
-    props.formField.type === "file" ? "custom-file-input" : "form-control";
+interface FormGroupInterface {
+  field: FormField;
+  onChange?: (
+    event?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  onBlur?: React.FocusEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+  className?: string;
+  disabled?: boolean;
+  error: string | null;
+}
 
-  if (props.hasError) {
-    className += " is-invalid";
+function FormGroup({
+  field,
+  onChange,
+  onBlur,
+  className,
+  disabled,
+  error,
+}: FormGroupInterface) {
+  var classNames = require("classnames");
+
+  let as: React.ElementType<any> | undefined;
+  let type: string | undefined = field.type;
+
+  if (field.type === "textarea") {
+    as = "textarea";
+    type = undefined;
   }
-
-  const [previewSrc, fileInputLabel] = useMemo(() => {
-    let source = props.preview?.source;
-    let label = "[Choose file]";
-    if (props.formField.enteredFiles && props.formField.enteredFiles[0]) {
-      source = URL.createObjectURL(props.formField.enteredFiles[0]);
-      label = props.formField.enteredFiles[0].name;
-    } else if (source) {
-      source = props.preview.source;
-      label = "[Change file]";
-    }
-
-    return [source, label];
-  }, [props.formField.enteredFiles, props.preview?.source]);
-
-  console.log("previewSrc", previewSrc);
-
-  let inputField;
-  if (props.formField.type === "textarea") {
-    inputField = (
-      <textarea
-        name={props.formField.id}
-        id={props.formField.id}
-        onChange={props.valueChangeHandler}
-        onBlur={props.inputBlurHandler}
-        value={props.formField.value ? props.formField.value : ""}
-        placeholder={props.formField.placeholder}
-        rows={props.formField.rows}
-        className={className}
-        disabled={props.disabled}
-      />
-    );
-  } else {
-    inputField = (
-      <input
-        type={props.formField.type}
-        name={props.formField.id}
-        id={props.formField.id}
-        onChange={props.valueChangeHandler}
-        onBlur={props.inputBlurHandler}
-        value={props.formField.value ? props.formField.value : ""}
-        placeholder={props.formField.placeholder}
-        step={props.formField.step}
-        className={className}
-        disabled={props.disabled}
-        accept="image/*, video/mp4"
-      />
-    );
-  }
-
   return (
-    <div className="form-group">
-      {props.formField.label && (
-        <label htmlFor={props.formField.id}>{props.formField.label}</label>
-      )}
-      {previewSrc && (
-        <div>
-          <video
-            key={previewSrc}
-            autoPlay={props.preview?.autoPlay}
-            loop={props.preview?.loop}
-            controls={props.preview?.controls}
-            poster={previewSrc}
-            className={props.preview?.className}
-          >
-            <source src={previewSrc} />
-          </video>
-        </div>
-      )}
-      <div className={props.formField.type === "file" ? "custom-file" : ""}>
-        {inputField}
-        {props.formField.type === "file" && (
-          <label className="custom-file-label" htmlFor="customFile">
-            {fileInputLabel}
-          </label>
-        )}
-        <div className="invalid-feedback">{props.hasError}</div>
-      </div>
+    <div>
+      <Form.Group className="form-group">
+        {field.label && <Form.Label>{field.label}</Form.Label>}
+        <InputGroup>
+          <div className="input-group-prepend">
+            <InputGroup.Text
+              className={classNames("input-group-block", {
+                "is-invalid": error,
+              })}
+            >
+              https://nftea.market.com/
+            </InputGroup.Text>
+          </div>
+          <Form.Control
+            as={as}
+            type={type}
+            name={field.id}
+            id={field.id}
+            value={field.value ? field.value : ""}
+            placeholder={field.placeholder}
+            step={field.step}
+            className={classNames(className, { "is-invalid": error })}
+            disabled={disabled}
+            onChange={onChange}
+            onBlur={onBlur}
+          />
+          {error && (
+            <Form.Control.Feedback type="invalid">
+              {error}
+            </Form.Control.Feedback>
+          )}
+        </InputGroup>
+      </Form.Group>
     </div>
   );
 }

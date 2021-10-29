@@ -406,7 +406,7 @@ $font-size-dash: 0.875rem !default;
 $font-size-base: $font-size-dash !default; // Assumes the browser default, typically `16px`
 $font-size-xl: ($font-size-base * 1.428);
 $font-size-lg: ($font-size-base * 1.142);
-$font-size-sm: ($font-size-base * 0.85714286);
+$font-size-sm: ($font-size-base * 0.914285714);
 $font-size-xs: ($font-size-base * 0.714);
 
 $h1-font-size: $font-size-base * 2.35714285 !default; //2.1875rem

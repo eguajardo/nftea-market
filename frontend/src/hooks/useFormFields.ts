@@ -1,34 +1,5 @@
 import { useCallback, useState } from "react";
-
-type ValidatorFunction = (
-  field: FormField,
-  allFields?: Map<string, FormField>
-) => string | null;
-
-type InputType = "text" | "number" | "file" | "textarea";
-
-/**
- *    {
- *      type: "text",
- *      id: "name",
- *      label: "Input label",
- *      placeholder: "Input placeholder",
- *      value: "Some value",
- *      isTouched: true, // set automatically
- *      enteredFiles: [], // set automatically only when input type = file
- *      validator: (field, allFields) => { return "Error message" } // validates and return error
- *    }
- */
-interface FormField {
-  type: InputType;
-  id: string;
-  label?: string;
-  placeholder?: string;
-  value?: any;
-  isTouched?: boolean;
-  enteredFiles?: FileList | null | undefined;
-  validator?: ValidatorFunction;
-}
+import { FormField } from "types/forms";
 
 function mergeAttributes(
   prevState: Map<string, FormField>,
@@ -79,19 +50,22 @@ export function useFormFields(initialFields: Map<string, FormField>) {
   }, []);
 
   const createValueChangeHandler =
-    (field: FormField) => (event?: React.ChangeEvent<HTMLInputElement>) => {
-      if (event?.target?.type === "file") {
-        field.enteredFiles = event.target.files;
+    (field: FormField) =>
+    (event?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (event?.currentTarget?.type === "file") {
+        const target = event.currentTarget as HTMLInputElement;
+        field.enteredFiles = target.files;
         // file input is not marked touched when opening file explorer dialog,
         // instead we mark it in here
         field.isTouched = true;
       }
-      field.value = event?.target?.value;
+      field.value = event?.currentTarget?.value;
       setFormFields((prevState) => mergeAttributes(prevState, field));
     };
 
   const createInputBlurHandler =
-    (field: FormField) => (event?: React.FocusEvent<HTMLInputElement>) => {
+    (field: FormField) =>
+    (event?: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       if (event?.target?.type === "file") {
         // file input should not be marked as touched when opening the file explorer
         return;
