@@ -1,9 +1,14 @@
-import FormGroup from "components/ui/FormGroup";
+import { useContractCall } from "@usedapp/core";
+import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
+import { Contract } from "ethers";
+
+import FormGroup from "components/ui/FormGroup";
 import React from "react";
 import { Button } from "react-bootstrap";
 
 function RegisterForm() {
+  console.log("render RegisterForm");
   const {
     formFields,
     createValueChangeHandler,
@@ -19,11 +24,15 @@ function RegisterForm() {
           id: "username",
           label: "Username for your market stall",
           placeholder: "johnDoe",
+          prepend: "https://nftea.market.com/",
           validator: (field): string | null => {
             if (!field.value || field.value.trim() === "") {
               return "Username must not be empty!";
             }
-
+            if (stallNameTaken) {
+              return "Username already taken!";
+            }
+            console.log("stallNameTaken", stallNameTaken);
             return null;
           },
         },
@@ -61,6 +70,15 @@ function RegisterForm() {
       ],
     ])
   );
+
+  const marketContract: Contract | null = useContract("Market");
+  const [stallNameTaken] =
+    useContractCall({
+      abi: marketContract?.interface!,
+      address: marketContract?.address!,
+      method: "stallNameTaken",
+      args: [formFields.get("username")?.value ?? ""],
+    }) ?? [];
 
   const formSubmissionHandler = async (event: React.FormEvent) => {
     event.preventDefault();

@@ -27,4 +27,5 @@ export interface FormField {
   isTouched?: boolean;
   enteredFiles?: FileList | null | undefined;
   validator?: ValidatorFunction;
+  prepend?: any;
 }
