@@ -25,7 +25,7 @@ function FormGroup({
 }: FormGroupInterface) {
   return (
     <div>
-      <Form.Group className="form-group">
+      <Form.Group className="form-group mb-3">
         {field.label && <Form.Label>{field.label}</Form.Label>}
         {field.prepend && (
           <InputGroup>

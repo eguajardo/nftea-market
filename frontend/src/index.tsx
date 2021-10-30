@@ -7,6 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import "theme/assets/scss/blk-design-system-pro-react.scss?v1.2.0";
 import "theme/assets/css/nucleo-icons.css";
+import "index.scss";
 
 let readOnlyChainId;
 if (window.location.hostname.includes("localhost")) {

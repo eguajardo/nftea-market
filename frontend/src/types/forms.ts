@@ -29,3 +29,15 @@ export interface FormField {
   validator?: ValidatorFunction;
   prepend?: any;
 }
+
+export enum FormProcessingStatus {
+  Processing,
+  Success,
+  Error,
+}
+
+export interface FormState {
+  status?: FormProcessingStatus | null;
+  statusTitle?: string | null;
+  statusMessage?: string | null;
+}

@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useContractCall } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
-import { Contract } from "ethers";
 
 import FormGroup from "components/ui/FormGroup";
-import React from "react";
-import { Button } from "react-bootstrap";
+import { Market } from "types/typechain";
+import SubmitButton from "components/ui/SubmitButton";
+import { createSubmissionHandler } from "helpers/submissionHandler";
+import useFormAlert from "hooks/useFormAlert";
+import { FormProcessingStatus, FormState } from "types/forms";
 
 function RegisterForm() {
   console.log("render RegisterForm");
@@ -71,7 +74,10 @@ function RegisterForm() {
     ])
   );
 
-  const marketContract: Contract | null = useContract("Market");
+  const [formState, setFormState] = useState<FormState>({});
+  useFormAlert(formState);
+
+  const marketContract: Market | null = useContract("Market");
   const [stallNameTaken] =
     useContractCall({
       abi: marketContract?.interface!,
@@ -80,17 +86,30 @@ function RegisterForm() {
       args: [formFields.get("username")?.value ?? ""],
     }) ?? [];
 
-  const formSubmissionHandler = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const onSubmit = async () => {
+    setFormState({
+      status: FormProcessingStatus.Processing,
+      statusTitle: "Registering profile...",
+    });
+    console.log("TEST");
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setFormState({
+      status: FormProcessingStatus.Success,
+      statusMessage: "Profile Created",
+    });
+  };
 
-    if (!validateForm()) {
-      console.log("Validation error");
-      return;
-    }
+  const onSubmitError = async (err: any) => {
+    setFormState({
+      status: FormProcessingStatus.Error,
+      statusMessage: err.message,
+    });
   };
 
   return (
-    <form onSubmit={formSubmissionHandler}>
+    <form
+      onSubmit={createSubmissionHandler(onSubmit, onSubmitError, validateForm)}
+    >
       {Array.from(formFields.values()).map((formField) => {
         return (
           <FormGroup
@@ -104,9 +123,11 @@ function RegisterForm() {
       })}
 
       <div id="actions" className="mt-4">
-        <Button type="submit" variant="primary">
+        <SubmitButton
+          formProcessing={formState.status === FormProcessingStatus.Processing}
+        >
           Submit
-        </Button>
+        </SubmitButton>
       </div>
     </form>
   );

@@ -29,7 +29,12 @@ function RegisterBackground() {
       className="wrapper register-page"
       ref={wrapper}
       onMouseMove={followCursor}
-      style={{ width: "100%", height: "100%", position: "absolute" }}
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "absolute",
+        overflowX: "hidden",
+      }}
     >
       <div
         className="square square-7"

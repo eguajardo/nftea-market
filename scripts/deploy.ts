@@ -26,6 +26,7 @@ const main = async () => {
   );
 
   saveContractFiles();
+  copyTypingsToFrontend();
 };
 
 const deployMarketContract = async (currencyContractAddress: string) => {
@@ -108,6 +109,18 @@ const saveContractFiles = () => {
 
   fs.writeFileSync(frontEndDir + CONTRACTS_FILENAME, content);
   fs.writeFileSync(backEndDir + CONTRACTS_FILENAME, content);
+};
+
+const copyTypingsToFrontend = () => {
+  const fs = require("fs-extra");
+  const source = __dirname + "/../typechain";
+  const destination = __dirname + "/../frontend/src/types/typechain";
+
+  if (!fs.existsSync(destination)) {
+    fs.mkdirSync(destination);
+  }
+
+  fs.copySync(source, destination);
 };
 
 main()
