@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { useContractCall } from "@usedapp/core";
+import { useHistory } from "react-router-dom";
+import { useContractFunction } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
+import useFormAlert from "hooks/useFormAlert";
+
+import { createSubmissionHandler } from "helpers/submissionHandler";
+import { web3storage } from "helpers/ipfs";
 
 import FormGroup from "components/ui/FormGroup";
 import { Market } from "types/typechain";
 import SubmitButton from "components/ui/SubmitButton";
-import { createSubmissionHandler } from "helpers/submissionHandler";
-import useFormAlert from "hooks/useFormAlert";
 import { FormProcessingStatus, FormState } from "types/forms";
 
 function RegisterForm() {
@@ -32,10 +35,6 @@ function RegisterForm() {
             if (!field.value || field.value.trim() === "") {
               return "Username must not be empty!";
             }
-            if (stallNameTaken) {
-              return "Username already taken!";
-            }
-            console.log("stallNameTaken", stallNameTaken);
             return null;
           },
         },
@@ -74,29 +73,37 @@ function RegisterForm() {
     ])
   );
 
+  const routerHistory = useHistory();
+
   const [formState, setFormState] = useState<FormState>({});
   const { successAlertResult } = useFormAlert(formState);
 
-  const marketContract: Market | null = useContract("Market");
-  const [stallNameTaken] =
-    useContractCall({
-      abi: marketContract?.interface!,
-      address: marketContract?.address!,
-      method: "stallNameTaken",
-      args: [formFields.get("username")?.value ?? ""],
-    }) ?? [];
+  const marketContract: Market = useContract("Market")!;
+
+  const { state: registrationState, send: sendRegistration } =
+    useContractFunction(marketContract, "registerStall");
 
   const onSubmit = async () => {
+    registrationState.status = "None";
     setFormState({
       status: FormProcessingStatus.Processing,
       statusTitle: "Registering profile...",
     });
-    console.log("TEST");
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setFormState({
-      status: FormProcessingStatus.Success,
-      statusMessage: "Profile Created",
-    });
+
+    const metadataBlob = new Blob([
+      JSON.stringify({
+        name: formFields.get("name")!.value,
+        description: formFields.get("about")!.value,
+      }),
+    ]);
+
+    const filename = "metadata.json";
+    const files = [new File([metadataBlob], filename)];
+    const metadataCid = await web3storage.put(files);
+    const uri = `ipfs://${metadataCid}/${filename}`;
+
+    console.log("Uploaded metadata json", uri);
+    sendRegistration(formFields.get("username")!.value, uri);
   };
 
   const onSubmitError = async (err: any) => {
@@ -106,14 +113,39 @@ function RegisterForm() {
     });
   };
 
+  useEffect(() => {
+    if (
+      registrationState &&
+      formState.status === FormProcessingStatus.Processing
+    ) {
+      switch (registrationState.status) {
+        case "Success":
+          console.log("Registration done");
+          setFormState({
+            status: FormProcessingStatus.Success,
+            statusMessage: "Profile Created",
+          });
+          break;
+        case "Exception":
+        case "Fail":
+          setFormState({
+            status: FormProcessingStatus.Error,
+            statusMessage: registrationState.errorMessage,
+          });
+          console.error("Transaction Error:", registrationState.errorMessage);
+          break;
+      }
+    }
+  }, [registrationState, formState.status]);
+
   const waitSuccessAlertDismiss = useCallback(async () => {
     if (
       formState.status === FormProcessingStatus.Success &&
       successAlertResult
     ) {
-      console.log("dismissed");
+      routerHistory.push("/profile");
     }
-  }, [formState.status, successAlertResult]);
+  }, [formState.status, successAlertResult, routerHistory]);
 
   useEffect(() => {
     waitSuccessAlertDismiss();

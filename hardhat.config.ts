@@ -11,6 +11,18 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const TEST_ACCOUNT_BALANCE = utils.parseEther("1000").toString();
+const TEST_ACCOUNTS = [
+  process.env.TESTNET_ACCOUNT_1!,
+  process.env.TESTNET_ACCOUNT_2!,
+  process.env.TESTNET_ACCOUNT_3!,
+  process.env.TESTNET_ACCOUNT_4!,
+  process.env.TESTNET_ACCOUNT_5!,
+  process.env.TESTNET_ACCOUNT_6!,
+  process.env.TESTNET_ACCOUNT_7!,
+  process.env.TESTNET_ACCOUNT_8!,
+  process.env.TESTNET_ACCOUNT_9!,
+  process.env.TESTNET_ACCOUNT_10!,
+];
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -27,38 +39,16 @@ const config: HardhatUserConfig = {
       forking: {
         url: process.env.RPC_NODE || "https://rpc-mumbai.maticvigil.com",
       },
-      accounts: [
-        {
-          privateKey: process.env.TESTNET_ACCOUNT_1!,
+      accounts: TEST_ACCOUNTS.map((account) => {
+        return {
+          privateKey: account,
           balance: TEST_ACCOUNT_BALANCE,
-        },
-        {
-          privateKey: process.env.TESTNET_ACCOUNT_2!,
-          balance: TEST_ACCOUNT_BALANCE,
-        },
-        {
-          privateKey: process.env.TESTNET_ACCOUNT_3!,
-          balance: TEST_ACCOUNT_BALANCE,
-        },
-        {
-          privateKey: process.env.TESTNET_ACCOUNT_4!,
-          balance: TEST_ACCOUNT_BALANCE,
-        },
-        {
-          privateKey: process.env.TESTNET_ACCOUNT_5!,
-          balance: TEST_ACCOUNT_BALANCE,
-        },
-      ],
+        };
+      }),
     },
     mumbai: {
       url: process.env.RPC_NODE || "https://rpc-mumbai.maticvigil.com",
-      accounts: [
-        process.env.TESTNET_ACCOUNT_1!,
-        process.env.TESTNET_ACCOUNT_2!,
-        process.env.TESTNET_ACCOUNT_3!,
-        process.env.TESTNET_ACCOUNT_4!,
-        process.env.TESTNET_ACCOUNT_5!,
-      ],
+      accounts: TEST_ACCOUNTS,
     },
   },
   docgen: {

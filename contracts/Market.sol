@@ -195,6 +195,16 @@ contract Market is Context {
     }
 
     /**
+     * @notice Returns the metadata URI associated to the account's stall,
+     * return an empty string if the account is not a registered vendor
+     * @param account_ The account to use for the uri lookup
+     * @return the account's stall URI, empty string if not found
+     */
+    function uriOrEmpty(address account_) external view returns (string memory) {
+        return _uris[_stallNames[account_]];
+    }
+
+    /**
     * @notice Register an NFT stall for the sender address with the specified
     * `stallName_` and metadata `uri_`.
     * @param stallName_ A unique string representing the stall name. In 

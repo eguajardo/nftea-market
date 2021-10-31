@@ -1074,6 +1074,25 @@ export const contracts: any = {
           "inputs": [
             {
               "internalType": "address",
+              "name": "account_",
+              "type": "address"
+            }
+          ],
+          "name": "uriOrEmpty",
+          "outputs": [
+            {
+              "internalType": "string",
+              "name": "",
+              "type": "string"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
               "name": "vendor_",
               "type": "address"
             }

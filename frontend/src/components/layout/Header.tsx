@@ -1,13 +1,29 @@
-import { useEthers } from "@usedapp/core";
+import { useContractCall, useEthers } from "@usedapp/core";
+import { useContract } from "hooks/useContract";
 import { Button, Col, Container, Nav, Navbar, Row } from "react-bootstrap";
 import { NavLink } from "react-router-dom";
+import { Market } from "types/typechain";
 
 function Header() {
   const { activateBrowserWallet, account } = useEthers();
+  const marketContract: Market = useContract("Market")!;
 
   const connect = () => {
     activateBrowserWallet();
   };
+
+  const [stallUri] =
+    useContractCall(
+      marketContract &&
+        account && {
+          abi: marketContract.interface,
+          address: marketContract.address,
+          method: "uriOrEmpty",
+          args: [account],
+        }
+    ) ?? [];
+
+  console.log("account", account);
 
   return (
     <div>
@@ -49,7 +65,7 @@ function Header() {
                     <p>Connect</p>
                   </Button>
                 )}
-                {account && (
+                {account && !stallUri && (
                   <NavLink to="/register" className="btn btn-warning btn-sm">
                     <p>Open NFT Stall</p>
                   </NavLink>

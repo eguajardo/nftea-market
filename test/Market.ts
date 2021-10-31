@@ -437,6 +437,19 @@ describe("Market contract", () => {
     });
   });
 
+  describe("uriOrEmpty", async () => {
+    it("Should get correct URI", async () => {
+      expect(await marketContract.uriOrEmpty(vendor.address)).to.equals(
+        TEST_URI_1
+      );
+    });
+
+    it("Should get empty URI", async () => {
+      expect(await marketContract.uriOrEmpty(defaultSigner.address)).to.be
+        .empty;
+    });
+  });
+
   describe("stallVendor", async () => {
     it("Should return stall vendor address", async () => {
       expect(await marketContract.stallVendor(STALL_NAME_REGISTERED)).to.equals(
