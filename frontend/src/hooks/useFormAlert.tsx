@@ -1,14 +1,19 @@
-import { useEffect, useMemo } from "react";
-import Swal from "sweetalert2";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Swal, { SweetAlertResult } from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { FormProcessingStatus, FormState } from "types/forms";
 
 function useFormAlert(formState: FormState) {
+  const [successAlertResult, setSuccessAlertResult] =
+    useState<SweetAlertResult<any>>();
+
   const Alert = useMemo(() => {
     return withReactContent(Swal);
   }, []);
 
   useEffect(() => {
+    setSuccessAlertResult(undefined);
+
     switch (formState.status) {
       case FormProcessingStatus.Processing:
         Alert.fire({
@@ -21,13 +26,21 @@ function useFormAlert(formState: FormState) {
         });
         break;
       case FormProcessingStatus.Success:
-        Alert.fire({
+        const successAlertPromise: Promise<SweetAlertResult<any>> = Alert.fire({
           icon: "success",
           title: formState.statusTitle ?? "Success!",
           text: formState.statusMessage ?? undefined,
           timer: 2000,
           timerProgressBar: true,
         });
+
+        if (successAlertPromise) {
+          console.log("successAlertPromise", successAlertPromise);
+          successAlertPromise.then((result) => {
+            setSuccessAlertResult(result);
+          });
+        }
+
         break;
       case FormProcessingStatus.Error:
         Alert.fire({
@@ -39,7 +52,7 @@ function useFormAlert(formState: FormState) {
     }
   }, [formState, Alert]);
 
-  return Alert;
+  return { Alert, successAlertResult };
 }
 
 export default useFormAlert;

@@ -12,6 +12,5 @@ export const createSubmissionHandler =
     } catch (err: any) {
       console.log(err);
       await onError(err);
-      throw err;
     }
   };

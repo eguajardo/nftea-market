@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useContractCall } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
@@ -75,7 +75,7 @@ function RegisterForm() {
   );
 
   const [formState, setFormState] = useState<FormState>({});
-  useFormAlert(formState);
+  const { successAlertResult } = useFormAlert(formState);
 
   const marketContract: Market | null = useContract("Market");
   const [stallNameTaken] =
@@ -105,6 +105,19 @@ function RegisterForm() {
       statusMessage: err.message,
     });
   };
+
+  const waitSuccessAlertDismiss = useCallback(async () => {
+    if (
+      formState.status === FormProcessingStatus.Success &&
+      successAlertResult
+    ) {
+      console.log("dismissed");
+    }
+  }, [formState.status, successAlertResult]);
+
+  useEffect(() => {
+    waitSuccessAlertDismiss();
+  }, [waitSuccessAlertDismiss]);
 
   return (
     <form
