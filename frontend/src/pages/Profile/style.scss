@@ -1,0 +1,33 @@
+@import "../../theme/assets/scss/blk-design-system-pro/custom/functions";
+@import "~bootstrap/scss/functions";
+@import "../../theme/assets/scss/blk-design-system-pro/variables";
+
+.header-banner {
+  width: 100%;
+  height: 300px;
+  background-position: center;
+  background-size: cover;
+}
+
+.profile-left-column {
+  margin-top: -100px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.profile-picture {
+  width: 200px;
+  border: 2px solid $primary;
+}
+
+.profile-page-content {
+  color: rgba($color: #fff, $alpha: 0.8);
+
+  .navbar .navbar-brand {
+    font-size: 2rem;
+  }
+
+  button.selected {
+    color: white;
+  }
+}

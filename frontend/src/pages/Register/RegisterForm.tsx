@@ -143,9 +143,9 @@ function RegisterForm() {
       formState.status === FormProcessingStatus.Success &&
       successAlertResult
     ) {
-      routerHistory.push("/profile");
+      routerHistory.push(`/${formFields.get("username")!.value}`);
     }
-  }, [formState.status, successAlertResult, routerHistory]);
+  }, [formState.status, successAlertResult, routerHistory, formFields]);
 
   useEffect(() => {
     waitSuccessAlertDismiss();

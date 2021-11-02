@@ -59,7 +59,6 @@ function Header() {
                     color="default"
                     onClick={connect}
                     size="sm"
-                    target="_blank"
                     variant="warning"
                   >
                     <p>Connect</p>
