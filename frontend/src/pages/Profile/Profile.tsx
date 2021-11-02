@@ -166,17 +166,15 @@ function Profile() {
             </Navbar>
           </Col>
         </Row>
-        <Row>
-          <Col md={3} xs={12}></Col>
-          <Col md={9} xs={12}>
-            {contentDisplaying === Content.About && (
-              <div className="mt-2">{metadata?.description}</div>
-            )}
-            {contentDisplaying === Content.NewNFT &&
-              vendorAddress &&
-              vendorAddress === account && <NewNFT />}
-          </Col>
-        </Row>
+
+        <div className="mt-5">
+          {contentDisplaying === Content.About && (
+            <div className="mt-2">{metadata?.description}</div>
+          )}
+          {contentDisplaying === Content.NewNFT &&
+            vendorAddress &&
+            vendorAddress === account && <NewNFT />}
+        </div>
       </div>
     </Container>
   );

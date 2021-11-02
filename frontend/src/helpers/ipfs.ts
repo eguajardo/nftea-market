@@ -19,6 +19,7 @@ export const nftStorage = new NFTStorage({
 });
 
 export const uploadJSONMetadata = async (json: Metadata): Promise<string> => {
+  console.log("Uploading metadata JSON");
   const metadataBlob = new Blob([JSON.stringify(json)]);
 
   const filename = "metadata.json";
@@ -26,7 +27,7 @@ export const uploadJSONMetadata = async (json: Metadata): Promise<string> => {
   const metadataCid = await web3storage.put(files);
   const uri = `ipfs://${metadataCid}/${filename}`;
 
-  console.log("Uploaded metadata json", uri, json);
+  console.log("Uploaded metadata JSON", uri, json);
   return uri;
 };
 
@@ -36,6 +37,7 @@ export const getJSONMetadata = async (
   if (!uri) {
     return;
   }
+  console.log("Retrieving metadata JSON", uri);
 
   const path = uri.replace("ipfs://", "");
   const cid = path.slice(0, path.indexOf("/"));
@@ -49,7 +51,7 @@ export const getJSONMetadata = async (
 
   const files: FileList = await res.files();
 
-  const json: string = await new Promise((resolve, reject) => {
+  const text: string = await new Promise((resolve, reject) => {
     var fr = new FileReader();
     fr.onload = () => {
       resolve(fr.result?.toString()!);
@@ -58,5 +60,8 @@ export const getJSONMetadata = async (
     fr.readAsText(files[0]);
   });
 
-  return JSON.parse(json) as Metadata;
+  const json = JSON.parse(text) as Metadata;
+  console.log("Retrieved metadata JSON", cid, json);
+
+  return json;
 };

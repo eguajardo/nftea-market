@@ -12,6 +12,7 @@ import { Market } from "types/typechain";
 
 import FormGroup from "components/ui/FormGroup";
 import SubmitButton from "components/ui/SubmitButton";
+import { Col, Row } from "react-bootstrap";
 
 function NewNFT() {
   const {
@@ -50,6 +51,43 @@ function NewNFT() {
             if (!field.value || field.value.trim() === "") {
               return "Description must not be empty!";
             }
+            return null;
+          },
+        },
+      ],
+      [
+        "supply",
+        {
+          type: "number",
+          id: "supply",
+          label: "Copies",
+          step: 1,
+          value: 0,
+          validator: (field) => {
+            if (field.value < 0) {
+              return "Copies must not be negative!";
+            }
+            if (Number.isInteger(field.value) || field.value !== undefined) {
+              return "Copies must be integer value!";
+            }
+
+            return null;
+          },
+        },
+      ],
+      [
+        "price",
+        {
+          type: "number",
+          id: "price",
+          label: "Price",
+          step: 1,
+          value: 3,
+          validator: (field) => {
+            if (!field.value || field.value <= 0) {
+              return "Price must not be zero!";
+            }
+
             return null;
           },
         },
@@ -119,17 +157,40 @@ function NewNFT() {
           validateForm
         )}
       >
-        {Array.from(formFields.values()).map((formField) => {
-          return (
+        <FormGroup
+          key={formFields.get("title")!.id}
+          field={formFields.get("title")!}
+          onChange={createValueChangeHandler(formFields.get("title")!)}
+          onBlur={createInputBlurHandler(formFields.get("title")!)}
+          error={hasError(formFields.get("title")!)}
+        />
+        <FormGroup
+          key={formFields.get("description")!.id}
+          field={formFields.get("description")!}
+          onChange={createValueChangeHandler(formFields.get("description")!)}
+          onBlur={createInputBlurHandler(formFields.get("description")!)}
+          error={hasError(formFields.get("description")!)}
+        />
+        <Row>
+          <Col>
             <FormGroup
-              key={formField.id}
-              field={formField}
-              onChange={createValueChangeHandler(formField)}
-              onBlur={createInputBlurHandler(formField)}
-              error={hasError(formField)}
+              key={formFields.get("supply")!.id}
+              field={formFields.get("supply")!}
+              onChange={createValueChangeHandler(formFields.get("supply")!)}
+              onBlur={createInputBlurHandler(formFields.get("supply")!)}
+              error={hasError(formFields.get("supply")!)}
             />
-          );
-        })}
+          </Col>
+          <Col>
+            <FormGroup
+              key={formFields.get("price")!.id}
+              field={formFields.get("price")!}
+              onChange={createValueChangeHandler(formFields.get("price")!)}
+              onBlur={createInputBlurHandler(formFields.get("price")!)}
+              error={hasError(formFields.get("price")!)}
+            />
+          </Col>
+        </Row>
 
         <div id="actions" className="mt-4">
           <SubmitButton
