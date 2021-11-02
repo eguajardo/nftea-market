@@ -6,7 +6,7 @@ import { useFormFields } from "hooks/useFormFields";
 import useFormAlert from "hooks/useFormAlert";
 
 import { createSubmissionHandler } from "helpers/submissionHandler";
-import { web3storage } from "helpers/ipfs";
+import { uploadJSONMetadata } from "helpers/ipfs";
 
 import FormGroup from "components/ui/FormGroup";
 import { Market } from "types/typechain";
@@ -28,7 +28,7 @@ function RegisterForm() {
         {
           type: "text",
           id: "username",
-          label: "Username for your market stall",
+          label: "ID for your market stall page",
           placeholder: "johnDoe",
           prepend: "https://nftea.market.com/",
           validator: (field): string | null => {
@@ -44,7 +44,7 @@ function RegisterForm() {
         {
           type: "text",
           id: "name",
-          label: "Your Name",
+          label: "Your stall page name",
           placeholder: "John Doe",
           validator: (field): string | null => {
             if (!field.value || field.value.trim() === "") {
@@ -60,7 +60,7 @@ function RegisterForm() {
         {
           type: "textarea",
           id: "about",
-          label: "About you",
+          label: "About your stall",
           placeholder: "Some description about you and the awesome work you do",
           validator: (field) => {
             if (!field.value || field.value.trim() === "") {
@@ -90,19 +90,11 @@ function RegisterForm() {
       statusTitle: "Registering profile...",
     });
 
-    const metadataBlob = new Blob([
-      JSON.stringify({
-        name: formFields.get("name")!.value,
-        description: formFields.get("about")!.value,
-      }),
-    ]);
+    const uri: string = await uploadJSONMetadata({
+      name: formFields.get("name")!.value,
+      description: formFields.get("about")!.value,
+    });
 
-    const filename = "metadata.json";
-    const files = [new File([metadataBlob], filename)];
-    const metadataCid = await web3storage.put(files);
-    const uri = `ipfs://${metadataCid}/${filename}`;
-
-    console.log("Uploaded metadata json", uri);
     sendRegistration(formFields.get("username")!.value, uri);
   };
 

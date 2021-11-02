@@ -7,6 +7,13 @@
   height: 300px;
   background-position: center;
   background-size: cover;
+  position: relative;
+
+  .admin-menu {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
 }
 
 .profile-left-column {

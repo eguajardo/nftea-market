@@ -18,6 +18,18 @@ export const nftStorage = new NFTStorage({
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDgyN2QyMkRFMEJFOGYzZDhDNzkxRkY2NWMzOEZkQTEyRjYxQzQ0NDUiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTYzNTcwNjc1MDcwNiwibmFtZSI6Im5mdGVhLm1hcmtldC11bnNhZmUtdG9rZW4ifQ.YtXPPhHUh9MJL8Zbmu-4za9lYpcZAIO-hTmT9-zM1Es",
 });
 
+export const uploadJSONMetadata = async (json: Metadata): Promise<string> => {
+  const metadataBlob = new Blob([JSON.stringify(json)]);
+
+  const filename = "metadata.json";
+  const files = [new File([metadataBlob], filename)];
+  const metadataCid = await web3storage.put(files);
+  const uri = `ipfs://${metadataCid}/${filename}`;
+
+  console.log("Uploaded metadata json", uri, json);
+  return uri;
+};
+
 export const getJSONMetadata = async (
   uri: string
 ): Promise<Metadata | undefined> => {

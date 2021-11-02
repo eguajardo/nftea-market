@@ -1,9 +1,11 @@
 import { getJSONMetadata } from "helpers/ipfs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useContractCall } from "@usedapp/core";
+import { useContractCalls, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { Market } from "types/typechain";
+
+import NewNFT from "./NewNFT";
 
 import {
   Button,
@@ -24,10 +26,11 @@ import profileImage from "assets/img/james.jpg";
 import "./style.scss";
 import { Metadata } from "types/metadata";
 
-enum MenuOption {
+enum Content {
   About,
   NFTeas,
   Sponsorships,
+  NewNFT,
 }
 
 const classNames = require("classnames");
@@ -37,18 +40,30 @@ function Profile() {
   const { stallId } = useParams<{ stallId: string }>();
   const marketContract: Market = useContract("Market")!;
   const [metadata, setMetadata] = useState<Metadata>();
-  const [menuOption, setMenuOption] = useState<MenuOption>(MenuOption.About);
+  const [contentDisplaying, setContentDisplaying] = useState<Content>(
+    Content.About
+  );
+  const { account } = useEthers();
 
-  const [stallUri] =
-    useContractCall(
+  const [stallUri, vendorAddress] =
+    useContractCalls([
       marketContract &&
         stallId && {
           abi: marketContract.interface,
           address: marketContract.address,
           method: "uri",
           args: [stallId],
-        }
-    ) ?? [];
+        },
+      marketContract &&
+        stallId && {
+          abi: marketContract.interface,
+          address: marketContract.address,
+          method: "stallVendor",
+          args: [stallId],
+        },
+    ]).reduce((flattenedArray, element) => {
+      return flattenedArray?.concat(element);
+    }) ?? [];
 
   useEffect(() => {
     if (stallUri) {
@@ -63,7 +78,22 @@ function Profile() {
         style={{
           backgroundImage: `url(${headerImage})`,
         }}
-      ></div>
+      >
+        {vendorAddress && vendorAddress === account && (
+          <Container className="admin-menu text-right mb-2">
+            <Button
+              variant="warning"
+              size="sm"
+              onClick={() => setContentDisplaying(Content.NewNFT)}
+            >
+              Create NFT
+            </Button>
+            <Button variant="warning" size="sm">
+              Request sponsorship
+            </Button>
+          </Container>
+        )}
+      </div>
       <div className="profile-page-content pb-4">
         <Row>
           <Col md={3} xs={12}>
@@ -101,10 +131,10 @@ function Profile() {
                   <Nav.Item as="li">
                     <Button
                       className={classNames("btn-link", {
-                        selected: menuOption === MenuOption.About,
+                        selected: contentDisplaying === Content.About,
                       })}
                       variant="info"
-                      onClick={() => setMenuOption(MenuOption.About)}
+                      onClick={() => setContentDisplaying(Content.About)}
                     >
                       About
                     </Button>
@@ -112,21 +142,21 @@ function Profile() {
                   <Nav.Item as="li">
                     <Button
                       className={classNames("btn-link", {
-                        selected: menuOption === MenuOption.NFTeas,
+                        selected: contentDisplaying === Content.NFTeas,
                       })}
                       variant="info"
-                      onClick={() => setMenuOption(MenuOption.NFTeas)}
+                      onClick={() => setContentDisplaying(Content.NFTeas)}
                     >
-                      NFTeas
+                      NFTs
                     </Button>
                   </Nav.Item>
                   <Nav.Item as="li">
                     <Button
                       className={classNames("btn-link", {
-                        selected: menuOption === MenuOption.Sponsorships,
+                        selected: contentDisplaying === Content.Sponsorships,
                       })}
                       variant="info"
-                      onClick={() => setMenuOption(MenuOption.Sponsorships)}
+                      onClick={() => setContentDisplaying(Content.Sponsorships)}
                     >
                       Sponsorships
                     </Button>
@@ -139,9 +169,12 @@ function Profile() {
         <Row>
           <Col md={3} xs={12}></Col>
           <Col md={9} xs={12}>
-            {menuOption === MenuOption.About && (
+            {contentDisplaying === Content.About && (
               <div className="mt-2">{metadata?.description}</div>
             )}
+            {contentDisplaying === Content.NewNFT &&
+              vendorAddress &&
+              vendorAddress === account && <NewNFT />}
           </Col>
         </Row>
       </div>
