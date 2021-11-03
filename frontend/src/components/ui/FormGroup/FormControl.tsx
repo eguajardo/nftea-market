@@ -1,4 +1,4 @@
-import { useDropzone, DropzoneInputProps } from "react-dropzone";
+import { useDropzone } from "react-dropzone";
 
 import { Fragment, useState } from "react";
 import { Form } from "react-bootstrap";
@@ -7,6 +7,8 @@ import Input from "./Input";
 
 import "dropzone/dist/dropzone.css";
 import "./style.scss";
+
+const classNames = require("classnames");
 
 function FormControl({
   field,
@@ -32,20 +34,13 @@ function FormControl({
     };
   }
 
-  let inputProps: DropzoneInputProps;
-  if (field.type === "file") {
-    inputProps = getInputProps({
-      className: "dropzone-input",
-    });
-  }
-
   return (
     <Fragment>
       {field.type === "file" && (
         <div>
           <div
             {...getRootProps({
-              className: "dropzone",
+              className: classNames("dropzone", { "is-invalid": error }),
               style: style,
             })}
           >
@@ -56,9 +51,16 @@ function FormControl({
               error={error}
               className={className}
               disabled={disabled}
-              fileInputProperties={inputProps!}
+              fileInputProperties={getInputProps()}
             />
-            <p>Drag 'n' drop some files here, or click to select files</p>
+            {!field.value && (
+              <div className="dropzone-message">{field.placeholder}</div>
+            )}
+            {error && (
+              <Form.Control.Feedback type="invalid">
+                {error}
+              </Form.Control.Feedback>
+            )}
           </div>
         </div>
       )}

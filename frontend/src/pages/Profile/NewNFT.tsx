@@ -99,6 +99,7 @@ function NewNFT() {
           type: "file",
           id: "image",
           label: "Image",
+          placeholder: "Drag & drop or click to select file",
           validator: (field) => {
             if (!field.value || field.value.trim() === "") {
               return "Image is missing!";
@@ -173,47 +174,55 @@ function NewNFT() {
           validateForm
         )}
       >
-        <FormGroup
-          key={formFields.get("title")!.id}
-          field={formFields.get("title")!}
-          onChange={createValueChangeHandler(formFields.get("title")!)}
-          onBlur={createInputBlurHandler(formFields.get("title")!)}
-          error={hasError(formFields.get("title")!)}
-        />
-        <FormGroup
-          key={formFields.get("description")!.id}
-          field={formFields.get("description")!}
-          onChange={createValueChangeHandler(formFields.get("description")!)}
-          onBlur={createInputBlurHandler(formFields.get("description")!)}
-          error={hasError(formFields.get("description")!)}
-        />
         <Row>
-          <Col>
+          <Col md={9} xs={12}>
             <FormGroup
-              key={formFields.get("supply")!.id}
-              field={formFields.get("supply")!}
-              onChange={createValueChangeHandler(formFields.get("supply")!)}
-              onBlur={createInputBlurHandler(formFields.get("supply")!)}
-              error={hasError(formFields.get("supply")!)}
+              key={formFields.get("title")!.id}
+              field={formFields.get("title")!}
+              onChange={createValueChangeHandler(formFields.get("title")!)}
+              onBlur={createInputBlurHandler(formFields.get("title")!)}
+              error={hasError(formFields.get("title")!)}
             />
-          </Col>
-          <Col>
             <FormGroup
-              key={formFields.get("price")!.id}
-              field={formFields.get("price")!}
-              onChange={createValueChangeHandler(formFields.get("price")!)}
-              onBlur={createInputBlurHandler(formFields.get("price")!)}
-              error={hasError(formFields.get("price")!)}
+              key={formFields.get("description")!.id}
+              field={formFields.get("description")!}
+              onChange={createValueChangeHandler(
+                formFields.get("description")!
+              )}
+              onBlur={createInputBlurHandler(formFields.get("description")!)}
+              error={hasError(formFields.get("description")!)}
+            />
+            <Row>
+              <Col>
+                <FormGroup
+                  key={formFields.get("supply")!.id}
+                  field={formFields.get("supply")!}
+                  onChange={createValueChangeHandler(formFields.get("supply")!)}
+                  onBlur={createInputBlurHandler(formFields.get("supply")!)}
+                  error={hasError(formFields.get("supply")!)}
+                />
+              </Col>
+              <Col>
+                <FormGroup
+                  key={formFields.get("price")!.id}
+                  field={formFields.get("price")!}
+                  onChange={createValueChangeHandler(formFields.get("price")!)}
+                  onBlur={createInputBlurHandler(formFields.get("price")!)}
+                  error={hasError(formFields.get("price")!)}
+                />
+              </Col>
+            </Row>
+          </Col>
+          <Col md={3} xs={12}>
+            <FormGroup
+              key={formFields.get("image")!.id}
+              field={formFields.get("image")!}
+              onChange={createValueChangeHandler(formFields.get("image")!)}
+              onBlur={createInputBlurHandler(formFields.get("image")!)}
+              error={hasError(formFields.get("image")!)}
             />
           </Col>
         </Row>
-        <FormGroup
-          key={formFields.get("image")!.id}
-          field={formFields.get("image")!}
-          onChange={createValueChangeHandler(formFields.get("image")!)}
-          onBlur={createInputBlurHandler(formFields.get("image")!)}
-          error={hasError(formFields.get("image")!)}
-        />
 
         <div id="actions" className="mt-4">
           <SubmitButton
