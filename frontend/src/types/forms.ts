@@ -41,3 +41,15 @@ export interface FormState {
   statusTitle?: string | null;
   statusMessage?: string | null;
 }
+
+export interface FormGroupInterface {
+  field: FormField;
+  onChange?: (
+    event?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  onBlur?: React.FocusEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+  className?: string;
+  disabled?: boolean;
+  error: string | null;
+  fileInputProperties?: any;
+}

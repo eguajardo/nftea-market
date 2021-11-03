@@ -10,7 +10,7 @@ import useFormAlert from "hooks/useFormAlert";
 import { FormProcessingStatus, FormState } from "types/forms";
 import { Market } from "types/typechain";
 
-import FormGroup from "components/ui/FormGroup";
+import FormGroup from "components/ui/FormGroup/FormGroup";
 import SubmitButton from "components/ui/SubmitButton";
 import { Col, Row } from "react-bootstrap";
 
@@ -86,6 +86,22 @@ function NewNFT() {
           validator: (field) => {
             if (!field.value || field.value <= 0) {
               return "Price must not be zero!";
+            }
+
+            return null;
+          },
+        },
+      ],
+
+      [
+        "image",
+        {
+          type: "file",
+          id: "image",
+          label: "Image",
+          validator: (field) => {
+            if (!field.value || field.value.trim() === "") {
+              return "Image is missing!";
             }
 
             return null;
@@ -191,6 +207,13 @@ function NewNFT() {
             />
           </Col>
         </Row>
+        <FormGroup
+          key={formFields.get("image")!.id}
+          field={formFields.get("image")!}
+          onChange={createValueChangeHandler(formFields.get("image")!)}
+          onBlur={createInputBlurHandler(formFields.get("image")!)}
+          error={hasError(formFields.get("image")!)}
+        />
 
         <div id="actions" className="mt-4">
           <SubmitButton

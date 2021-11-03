@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { useContractCalls, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { Market } from "types/typechain";
+import { Metadata } from "types/metadata";
 
 import NewNFT from "./NewNFT";
 
@@ -24,7 +25,6 @@ import headerImage from "assets/img/light.jpeg";
 import profileImage from "assets/img/james.jpg";
 
 import "./style.scss";
-import { Metadata } from "types/metadata";
 
 enum Content {
   About,

@@ -8,7 +8,7 @@ import useFormAlert from "hooks/useFormAlert";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 import { uploadJSONMetadata } from "helpers/ipfs";
 
-import FormGroup from "components/ui/FormGroup";
+import FormGroup from "components/ui/FormGroup/FormGroup";
 import { Market } from "types/typechain";
 import SubmitButton from "components/ui/SubmitButton";
 import { FormProcessingStatus, FormState } from "types/forms";
