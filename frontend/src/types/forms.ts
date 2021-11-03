@@ -1,3 +1,5 @@
+import { FileWithPath } from "file-selector";
+
 export type ValidatorFunction = (
   field: FormField,
   allFields?: Map<string, FormField>
@@ -25,7 +27,7 @@ export interface FormField {
   step?: number;
   value?: any;
   isTouched?: boolean;
-  enteredFiles?: FileList | null | undefined;
+  enteredFiles?: (FileWithPath | File)[] | null | undefined;
   validator?: ValidatorFunction;
   prepend?: any;
 }
@@ -51,5 +53,4 @@ export interface FormGroupInterface {
   className?: string;
   disabled?: boolean;
   error: string | null;
-  fileInputProperties?: any;
 }

@@ -1,12 +1,11 @@
 import { useDropzone } from "react-dropzone";
 
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import { Form } from "react-bootstrap";
 import { FormGroupInterface } from "types/forms";
-import Input from "./Input";
 
-import "dropzone/dist/dropzone.css";
 import "./style.scss";
+import React from "react";
 
 const classNames = require("classnames");
 
@@ -18,19 +17,33 @@ function FormControl({
   disabled,
   error,
 }: FormGroupInterface) {
-  const [file, setFile] = useState<File>();
+  let as: React.ElementType<any> | undefined;
+  let type: string | undefined = field.type;
+
+  if (field.type === "textarea") {
+    as = "textarea";
+    type = undefined;
+  }
+
   const { getRootProps, getInputProps } = useDropzone({
     accept: "image/*",
     maxFiles: 1,
-    onDrop: (acceptedFiles) => {
-      setFile(acceptedFiles[0]);
+    onDropAccepted: (acceptedFiles, event) => {
+      console.log("DROPPED", getInputProps());
+      onChange!(
+        event as React.BaseSyntheticEvent<
+          DragEvent,
+          HTMLInputElement,
+          HTMLInputElement
+        >
+      );
     },
   });
 
   let style = {};
-  if (file) {
+  if (field.enteredFiles) {
     style = {
-      backgroundImage: `url(${URL.createObjectURL(file!)})`,
+      backgroundImage: `url(${URL.createObjectURL(field.enteredFiles[0])})`,
     };
   }
 
@@ -44,14 +57,10 @@ function FormControl({
               style: style,
             })}
           >
-            <Input
-              field={field}
-              onChange={onChange}
-              onBlur={onBlur}
-              error={error}
-              className={className}
-              disabled={disabled}
-              fileInputProperties={getInputProps()}
+            <Form.Control
+              {...getInputProps({
+                className: classNames({ "is-invalid": error }),
+              })}
             />
             {!field.value && (
               <div className="dropzone-message">{field.placeholder}</div>
@@ -65,13 +74,18 @@ function FormControl({
         </div>
       )}
       {field.type !== "file" && (
-        <Input
-          field={field}
+        <Form.Control
+          as={as}
+          type={type}
+          name={field.id}
+          id={field.id}
+          value={field.value ? field.value : ""}
+          placeholder={field.placeholder}
+          step={field.step}
+          className={classNames(className, { "is-invalid": error })}
+          disabled={disabled}
           onChange={onChange}
           onBlur={onBlur}
-          error={error}
-          className={className}
-          disabled={disabled}
         />
       )}
 

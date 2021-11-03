@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
+import { FileWithPath, fromEvent } from "file-selector";
 import { FormField } from "types/forms";
 
 function mergeAttributes(
@@ -49,19 +50,41 @@ export function useFormFields(initialFields: Map<string, FormField>) {
     });
   }, []);
 
-  const createValueChangeHandler =
-    (field: FormField) =>
-    (event?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      if (event?.currentTarget?.type === "file") {
-        const target = event.currentTarget as HTMLInputElement;
-        field.enteredFiles = target.files;
+  function isFileWithPath(file: any): file is FileWithPath {
+    return !!file.path;
+  }
+
+  const createValueChangeHandler = (field: FormField) => (event?: any) => {
+    if (
+      event?.target?.type === "file" ||
+      event?.target?.className.includes("dropzone")
+    ) {
+      Promise.resolve(fromEvent(event)).then((files) => {
         // file input is not marked touched when opening file explorer dialog,
         // instead we mark it in here
         field.isTouched = true;
-      }
-      field.value = event?.currentTarget?.value;
+
+        field.enteredFiles = files.map(
+          (file: FileWithPath | DataTransferItem) => {
+            if (isFileWithPath(file)) {
+              return file;
+            } else {
+              return file.getAsFile()!;
+            }
+          }
+        );
+        if (isFileWithPath(files[0])) {
+          field.value = files[0].path;
+        } else {
+          field.value = files[0].getAsFile()?.name;
+        }
+        setFormFields((prevState) => mergeAttributes(prevState, field));
+      });
+    } else {
+      field.value = event?.target?.value;
       setFormFields((prevState) => mergeAttributes(prevState, field));
-    };
+    }
+  };
 
   const createInputBlurHandler =
     (field: FormField) =>
