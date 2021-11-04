@@ -39,7 +39,7 @@ const classNames = require("classnames");
 function Profile() {
   console.log("render Profile");
   const { stallId } = useParams<{ stallId: string }>();
-  const marketContract: Market = useContract("Market")!;
+  const marketContract: Market = useContract<Market>("Market")!;
   const [metadata, setMetadata] = useState<Metadata>();
   const [contentDisplaying, setContentDisplaying] = useState<Content>(
     Content.About

@@ -19,7 +19,7 @@ function useFormAlert(formState: FormState) {
         Alert.fire({
           icon: "info",
           title: formState.statusTitle ?? undefined,
-          text: formState.statusMessage ?? undefined,
+          html: formState.statusMessage ?? undefined,
           didOpen: () => {
             Alert.showLoading();
           },
@@ -29,7 +29,7 @@ function useFormAlert(formState: FormState) {
         const successAlertPromise: Promise<SweetAlertResult<any>> = Alert.fire({
           icon: "success",
           title: formState.statusTitle ?? "Success!",
-          text: formState.statusMessage ?? undefined,
+          html: formState.statusMessage ?? undefined,
           timer: 2000,
           timerProgressBar: true,
         });
@@ -46,7 +46,7 @@ function useFormAlert(formState: FormState) {
         Alert.fire({
           icon: "error",
           title: formState.statusTitle ?? "Something went wrong :(",
-          text: formState.statusMessage ?? undefined,
+          html: formState.statusMessage ?? undefined,
         });
         break;
     }

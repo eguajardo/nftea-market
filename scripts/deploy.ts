@@ -10,7 +10,7 @@ import {
 
 const NETWORKS_LOCAL: Array<string> = ["hardhat", "localhost"];
 const NETWORKS_TESTNETS: Array<string> = [...NETWORKS_LOCAL, "mumbai"];
-const ERC20_CURRENCY_DECIMALS: number = 2;
+const ERC20_CURRENCY_DECIMALS: number = 6;
 const CONTRACTS_FILENAME: string = "contracts.ts";
 
 const deployedContracts: Map<string, Contract> = new Map();
@@ -48,7 +48,6 @@ const deployMarketContract = async (currencyContractAddress: string) => {
 const deployTestCurrency = async () => {
   const TEST_CURRENCY_NAME: string = "Test USD Coin";
   const TEST_CURRENCY_SYMBOL: string = "TestUSDC";
-  const TEST_CURRENCY_DECIMALS: number = 6;
   const CURRENCY_SUPPLY: BigNumber = BigNumber.from("1000000000000"); // 1,000,000 USDC
   const ACCOUNT_BALANCE: BigNumber = BigNumber.from("200000000"); // 200 USDC
 
@@ -64,7 +63,7 @@ const deployTestCurrency = async () => {
       TEST_CURRENCY_SYMBOL,
       CURRENCY_SUPPLY,
       owner.address,
-      TEST_CURRENCY_DECIMALS
+      ERC20_CURRENCY_DECIMALS
     );
 
   await testCurrencyContract.deployed();

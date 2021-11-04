@@ -22,7 +22,7 @@ function NFTCard({ onSelect, ...nft }: Properties) {
         <Card.Footer>
           <div className="price-container">
             <span className="price">
-              ${nft.price.div(100).toNumber().toFixed(2)} USD
+              ${(nft.price.toNumber() / 100).toFixed(2)} USD
             </span>
           </div>
           <div>

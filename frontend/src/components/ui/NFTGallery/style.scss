@@ -1,3 +1,7 @@
+@import "../../../theme/assets/scss/blk-design-system-pro/custom/functions";
+@import "~bootstrap/scss/functions";
+@import "../../../theme/assets/scss/blk-design-system-pro/variables";
+
 .card-product {
   width: 240px !important;
   display: inline-block !important;
@@ -25,4 +29,12 @@
 .card-footer {
   display: flex;
   justify-content: space-between;
+}
+
+.main-price {
+  .supply {
+    line-height: 1.45em;
+    color: $opacity-8;
+    font-size: 1.0625rem;
+  }
 }

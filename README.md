@@ -65,6 +65,11 @@ cd frontend
 yarn start
 ```
 
+## ToDos
+
+- IMPORTANT web3.storage and nft.storage API keys are not really secret. Any API key must be an environment variable in server-side code. Any react environment variable will include the key in the build and be visible to anyone. See https://create-react-app.dev/docs/adding-custom-environment-variables/
+- Currently the front end is hardcoded to use the testnet stablecoin currency deployed in step 2 of `Run and deploy`. Before deploying to mainnet, some configuration would be required to set the right stablecoin contract, e.g. USDC
+
 ---
 
 > Project built using [BLK• Design System PRO React](https://www.creative-tim.com/product/blk-design-system-pro-react) theme from Creative Tim.

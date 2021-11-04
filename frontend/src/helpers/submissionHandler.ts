@@ -1,9 +1,9 @@
 export const createSubmissionHandler =
-  (onSubmit: Function, onError: Function, validateForm: Function) =>
+  (onSubmit: Function, onError: Function, validateForm?: Function) =>
   async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!validateForm()) {
+    if (validateForm && !validateForm()) {
       return;
     }
 

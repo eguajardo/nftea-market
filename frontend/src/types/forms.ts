@@ -42,7 +42,7 @@ export enum FormProcessingStatus {
 export interface FormState {
   status?: FormProcessingStatus | null;
   statusTitle?: string | null;
-  statusMessage?: string | null;
+  statusMessage?: string | JSX.Element | null;
 }
 
 export interface FormGroupInterface {
