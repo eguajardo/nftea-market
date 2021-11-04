@@ -1,3 +1,5 @@
+import { BigNumber } from "ethers";
+
 export type Metadata = {
   name: string;
   description: string;
@@ -6,7 +8,7 @@ export type Metadata = {
 };
 
 export type NFTData = Metadata & {
-  supply: number;
-  price: number;
-  class: number;
+  supply: BigNumber;
+  price: BigNumber;
+  nftClass: BigNumber;
 };

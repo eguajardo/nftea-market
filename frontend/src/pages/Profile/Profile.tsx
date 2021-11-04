@@ -1,12 +1,12 @@
 import { getJSONMetadata } from "helpers/ipfs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useContractCalls, useEthers } from "@usedapp/core";
+import { useContractCall, useContractCalls, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { Market } from "types/typechain";
 import { Metadata } from "types/metadata";
 
-import NFTs from "./NFTs";
+import NFTGallery from "components/ui/NFTGallery/NFTGallery";
 import NewNFT from "./NewNFT";
 
 import {
@@ -65,6 +65,17 @@ function Profile() {
     ]).reduce((flattenedArray, element) => {
       return flattenedArray?.concat(element);
     }) ?? [];
+
+  const [stallNFTClasses] =
+    useContractCall(
+      marketContract &&
+        stallId && {
+          abi: marketContract.interface,
+          address: marketContract.address,
+          method: "stallNFTs",
+          args: [stallId],
+        }
+    ) ?? [];
 
   useEffect(() => {
     if (stallUri) {
@@ -172,7 +183,9 @@ function Profile() {
           {contentDisplaying === Content.About && (
             <div className="mt-2">{metadata?.description}</div>
           )}
-          {contentDisplaying === Content.NFTs && <NFTs stallId={stallId} />}
+          {contentDisplaying === Content.NFTs && (
+            <NFTGallery nftsClasses={stallNFTClasses} />
+          )}
           {contentDisplaying === Content.NewNFT &&
             vendorAddress &&
             vendorAddress === account && (
