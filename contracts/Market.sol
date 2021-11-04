@@ -448,6 +448,27 @@ contract Market is Context {
     }
 
     /**
+     * @notice Returns data relevant to the NFT class
+     * @param class_ the class to retrieve data from
+     * @return nftURI the metadata URI
+     * @return maxSupply the class max supply, zero if unlimited
+     * @return price NFT price in fiat cents
+     */
+    function nftData(
+        uint128 class_
+    ) public view returns (
+        string memory nftURI,
+        uint128 maxSupply,
+        uint256 price
+    ) {
+        require(bytes(_nftStalls[class_]).length > 0, "Market: unregistered NFT class");
+
+        nftURI = nftContract.uri(uint256(class_) << 128); // needs to be converted to base ID
+        maxSupply = nftContract.maxSupply(class_);
+        price = _nftPrices[class_];
+    }
+
+    /**
      * @notice Returns the stall name registered to`vendor_` address
      * @param vendor_ The account address to whom the stall belongs to
      * @return the stall name registered to the vendor

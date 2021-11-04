@@ -1,6 +1,9 @@
 import { Web3Storage } from "web3.storage/dist/bundle.esm.min.js";
-import { NFTStorage } from "nft.storage";
+import { NFTStorage, toGatewayURL } from "nft.storage";
 import { Metadata } from "types/metadata";
+import { FileWithPath } from "file-selector";
+
+const GATEWAY = new URL("https://infura-ipfs.io/");
 
 // IMPORTANT: This token will be public and visible to anyone which is
 // a major security risk. It's done this way just for test purposes
@@ -18,6 +21,16 @@ export const nftStorage = new NFTStorage({
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDgyN2QyMkRFMEJFOGYzZDhDNzkxRkY2NWMzOEZkQTEyRjYxQzQ0NDUiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTYzNTcwNjc1MDcwNiwibmFtZSI6Im5mdGVhLm1hcmtldC11bnNhZmUtdG9rZW4ifQ.YtXPPhHUh9MJL8Zbmu-4za9lYpcZAIO-hTmT9-zM1Es",
 });
 
+export const uploadFile = async (
+  file: FileWithPath | File
+): Promise<string> => {
+  const fileCid = await web3storage.put([file]);
+  const uri = `ipfs://${fileCid}/${file.name}`;
+
+  console.log("Uploaded file to web3.storage", uri);
+  return uri;
+};
+
 export const uploadJSONMetadata = async (json: Metadata): Promise<string> => {
   console.log("Uploading metadata JSON");
   const metadataBlob = new Blob([JSON.stringify(json)]);
@@ -31,12 +44,7 @@ export const uploadJSONMetadata = async (json: Metadata): Promise<string> => {
   return uri;
 };
 
-export const getJSONMetadata = async (
-  uri: string
-): Promise<Metadata | undefined> => {
-  if (!uri) {
-    return;
-  }
+export const getJSONMetadata = async (uri: string): Promise<Metadata> => {
   console.log("Retrieving metadata JSON", uri);
 
   const path = uri.replace("ipfs://", "");
@@ -46,7 +54,7 @@ export const getJSONMetadata = async (
 
   if (!res.ok) {
     console.error("Error retrieving JSON from IPFS", res);
-    return;
+    throw new Error(res);
   }
 
   const files: FileList = await res.files();
@@ -61,7 +69,16 @@ export const getJSONMetadata = async (
   });
 
   const json = JSON.parse(text) as Metadata;
+  json.image = toHTTP(json.image);
+  json.headerImage = toHTTP(json.headerImage);
+
   console.log("Retrieved metadata JSON", cid, json);
 
   return json;
+};
+
+export const toHTTP = (ipfsUri: string | undefined): string | undefined => {
+  return ipfsUri
+    ? toGatewayURL(ipfsUri, { gateway: GATEWAY }).toString()
+    : ipfsUri;
 };

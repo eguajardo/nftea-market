@@ -66,9 +66,9 @@
   color: $white;
 
   &.input-group-block {
-    padding: 0.5rem 0.7rem;
-    background-color: $default;
-    color: rgba(255, 255, 255, 0.5);
+    padding: 0.5rem 0.7rem !important;
+    background-color: $default !important;
+    color: rgba(255, 255, 255, 0.5) !important;
   }
 
   & i {
@@ -154,10 +154,9 @@
 
 .input-group .form-control:not(:first-child):not(:last-child),
 .input-group-btn:not(:first-child):not(:last-child) {
-  border-radius: $border-radius-lg;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+  border-radius: 0;
   border-left: 0 none;
+  border-right: 0 none;
 }
 
 .input-group .form-control:first-child,

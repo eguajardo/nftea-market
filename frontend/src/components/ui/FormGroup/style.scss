@@ -33,3 +33,7 @@
     border: 1px dashed lighten($danger-states, 25%);
   }
 }
+
+.invalid-feedback {
+  display: block !important;
+}

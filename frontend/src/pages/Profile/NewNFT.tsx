@@ -1,7 +1,7 @@
-import { uploadJSONMetadata } from "helpers/ipfs";
+import { uploadJSONMetadata, uploadFile } from "helpers/ipfs";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useContractFunction } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
@@ -13,14 +13,19 @@ import { Market } from "types/typechain";
 import FormGroup from "components/ui/FormGroup/FormGroup";
 import SubmitButton from "components/ui/SubmitButton";
 import { Col, Row } from "react-bootstrap";
+import { Content } from "./Profile";
 
-function NewNFT() {
+function NewNFT(props: {
+  setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
+}) {
+  console.log("render NewNFT");
   const {
     formFields,
     createValueChangeHandler,
     createInputBlurHandler,
     validateForm,
     hasError,
+    resetForm,
   } = useFormFields(
     new Map([
       [
@@ -67,7 +72,7 @@ function NewNFT() {
             if (field.value < 0) {
               return "Copies must not be negative!";
             }
-            if (Number.isInteger(field.value) || field.value !== undefined) {
+            if (!Number.isInteger(parseInt(field.value))) {
               return "Copies must be integer value!";
             }
 
@@ -81,8 +86,10 @@ function NewNFT() {
           type: "number",
           id: "price",
           label: "Price",
-          step: 1,
-          value: 3,
+          step: 0.01,
+          value: parseFloat("10").toFixed(2),
+          prepend: "$",
+          append: "USD",
           validator: (field) => {
             if (!field.value || field.value <= 0) {
               return "Price must not be zero!";
@@ -128,12 +135,21 @@ function NewNFT() {
       statusTitle: "Creating NFT...",
     });
 
+    const imageUri = await uploadFile(
+      formFields.get("image")!.enteredFiles![0]
+    );
+
     const uri: string = await uploadJSONMetadata({
       name: formFields.get("title")!.value,
       description: formFields.get("description")!.value,
+      image: imageUri,
     });
 
-    postNFTForSale(formFields.get("title")!.value, uri);
+    postNFTForSale(
+      uri,
+      formFields.get("supply")!.value,
+      formFields.get("price")!.value * 100 // Convert to cents
+    );
   };
 
   const onSubmitError = async (err: any) => {
@@ -164,6 +180,20 @@ function NewNFT() {
       }
     }
   }, [postNFTState, formState.status]);
+
+  const waitSuccessAlertDismiss = useCallback(async () => {
+    if (
+      formState.status === FormProcessingStatus.Success &&
+      successAlertResult
+    ) {
+      resetForm();
+      props.setContentDisplaying(Content.NFTs);
+    }
+  }, [formState.status, successAlertResult, resetForm, props]);
+
+  useEffect(() => {
+    waitSuccessAlertDismiss();
+  }, [waitSuccessAlertDismiss]);
 
   return (
     <div>

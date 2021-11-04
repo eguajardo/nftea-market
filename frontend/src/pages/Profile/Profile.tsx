@@ -6,6 +6,7 @@ import { useContract } from "hooks/useContract";
 import { Market } from "types/typechain";
 import { Metadata } from "types/metadata";
 
+import NFTs from "./NFTs";
 import NewNFT from "./NewNFT";
 
 import {
@@ -26,9 +27,9 @@ import profileImage from "assets/img/james.jpg";
 
 import "./style.scss";
 
-enum Content {
+export enum Content {
   About,
-  NFTeas,
+  NFTs,
   Sponsorships,
   NewNFT,
 }
@@ -142,10 +143,10 @@ function Profile() {
                   <Nav.Item as="li">
                     <Button
                       className={classNames("btn-link", {
-                        selected: contentDisplaying === Content.NFTeas,
+                        selected: contentDisplaying === Content.NFTs,
                       })}
                       variant="info"
-                      onClick={() => setContentDisplaying(Content.NFTeas)}
+                      onClick={() => setContentDisplaying(Content.NFTs)}
                     >
                       NFTs
                     </Button>
@@ -171,9 +172,12 @@ function Profile() {
           {contentDisplaying === Content.About && (
             <div className="mt-2">{metadata?.description}</div>
           )}
+          {contentDisplaying === Content.NFTs && <NFTs stallId={stallId} />}
           {contentDisplaying === Content.NewNFT &&
             vendorAddress &&
-            vendorAddress === account && <NewNFT />}
+            vendorAddress === account && (
+              <NewNFT setContentDisplaying={setContentDisplaying} />
+            )}
         </div>
       </div>
     </Container>

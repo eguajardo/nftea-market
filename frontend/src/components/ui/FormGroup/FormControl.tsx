@@ -29,7 +29,6 @@ function FormControl({
     accept: "image/*",
     maxFiles: 1,
     onDropAccepted: (acceptedFiles, event) => {
-      console.log("DROPPED", getInputProps());
       onChange!(
         event as React.BaseSyntheticEvent<
           DragEvent,
@@ -65,11 +64,6 @@ function FormControl({
             {!field.value && (
               <div className="dropzone-message">{field.placeholder}</div>
             )}
-            {error && (
-              <Form.Control.Feedback type="invalid">
-                {error}
-              </Form.Control.Feedback>
-            )}
           </div>
         </div>
       )}
@@ -87,10 +81,6 @@ function FormControl({
           onChange={onChange}
           onBlur={onBlur}
         />
-      )}
-
-      {error && (
-        <Form.Control.Feedback type="invalid">{error}</Form.Control.Feedback>
       )}
     </Fragment>
   );

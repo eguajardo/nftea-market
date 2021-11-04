@@ -4,3 +4,9 @@ export type Metadata = {
   image?: string;
   headerImage?: string;
 };
+
+export type NFTData = Metadata & {
+  supply: number;
+  price: number;
+  class: number;
+};

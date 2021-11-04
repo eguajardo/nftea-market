@@ -30,6 +30,7 @@ export interface FormField {
   enteredFiles?: (FileWithPath | File)[] | null | undefined;
   validator?: ValidatorFunction;
   prepend?: any;
+  append?: any;
 }
 
 export enum FormProcessingStatus {

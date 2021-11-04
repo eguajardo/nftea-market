@@ -24,10 +24,10 @@ contract MultiToken is ERC1155Serialized, AccessControlEnumerable {
     uint128 private _classCounter;
 
     /**
-     * @dev Map from token class id to boolean. Return true if class has an 
-     * unlimited supply
+     * @dev Map from token class id to its max supply. Zero if the class
+     * has unlimited supply
      */
-    mapping(uint128 => bool) private _unlimitedSupplyClasses;
+    mapping(uint128 => uint128) private _classSupply;
 
     /**
      * @notice Emitted when a new class `class` is registered with URI
@@ -78,6 +78,18 @@ contract MultiToken is ERC1155Serialized, AccessControlEnumerable {
     }
 
     /**
+     * @notice Returns the max supply of a given token class
+     * @param class_ The class to check
+     * @return the max supply of the given class, zero if unlimited
+     */
+    function maxSupply(uint128 class_) public view returns (uint128) {
+        require(class_ > 0, "MultiToken: reserved zero class");
+        require(_classCounter >= class_, "MultiToken: unregistered class");
+
+        return _classSupply[class_];
+    }
+
+    /**
      * @notice Registers a token class with metadata URI `uri_` and mints
      * `supply_` unserialized tokens to the reserve for future serialization
      * Token class is automatically set to the next in sequence
@@ -99,15 +111,13 @@ contract MultiToken is ERC1155Serialized, AccessControlEnumerable {
         _classCounter++;
 
         _setURI(_classCounter, uri_);
+        _classSupply[_classCounter] = supply_;
 
         emit ClassRegistration(_classCounter, uri_, supply_);
 
-        // If supply_ is set, then mint as unserialized tokens, otherwise
-        // add the class to the registry of classes with unlimited supply
+        // If supply_ is set, then mint as unserialized tokens
         if (supply_ > 0) {
             _mintUnserialized(_classCounter, supply_, data_);
-        } else {
-            _unlimitedSupplyClasses[_classCounter] = true;
         }
 
         return _classCounter;
@@ -130,10 +140,10 @@ contract MultiToken is ERC1155Serialized, AccessControlEnumerable {
     ) public onlyRole(MINTER_ROLE) returns (uint256) {
         require(to_ != address(0), "MultiToken: mint to zero address");
         require(class_ > 0, "MultiToken: reserved zero class");
-        require(_classCounter >= class_, "MultiToken: unregistered registered");
+        require(_classCounter >= class_, "MultiToken: unregistered class");
 
         uint256 id;
-        if (_unlimitedSupplyClasses[class_]) {
+        if (_classSupply[class_] == 0) {
             id = _mintSerialized(to_, class_, data_);
         } else {
             id = _serializeToken(to_, class_, data_);

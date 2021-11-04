@@ -423,6 +423,28 @@ describe("Market contract", () => {
     });
   });
 
+  describe("nftData", async () => {
+    it("Should return the NFT data", async () => {
+      await marketContract
+        .connect(vendor)
+        .postNFTForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT);
+
+      const [uri, supply, price] = await marketContract.nftData(
+        ethers.constants.One
+      );
+
+      expect(uri).to.equals(TEST_URI_1);
+      expect(supply).to.deep.equals(TEST_SUPPLY_1);
+      expect(price).to.deep.equals(TEST_PRICE_FIAT);
+    });
+
+    it("Should fail due to unregistered class", async () => {
+      await expect(
+        marketContract.nftData(ethers.constants.One)
+      ).to.be.revertedWith("Market: unregistered NFT class");
+    });
+  });
+
   describe("vendorStallName", async () => {
     it("Should get correct stall name", async () => {
       expect(await marketContract.vendorStallName(vendor.address)).to.equals(

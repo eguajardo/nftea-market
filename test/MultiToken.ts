@@ -259,7 +259,7 @@ describe("MultiToken contract", () => {
           CLASS_LIMITED + CLASS_UNLIMITED,
           []
         )
-      ).to.be.revertedWith("MultiToken: unregistered registered");
+      ).to.be.revertedWith("MultiToken: unregistered class");
     });
 
     it("Should fail due to not enough supply", async () => {
