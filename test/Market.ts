@@ -424,24 +424,28 @@ describe("Market contract", () => {
   });
 
   describe("nftData", async () => {
+    const TEST_BASE_ID: BigNumber = BigNumber.from(
+      "340282366920938463463374607431768211456"
+    );
+
     it("Should return the NFT data", async () => {
       await marketContract
         .connect(vendor)
         .postNFTForSale(TEST_URI_1, TEST_SUPPLY_1, TEST_PRICE_FIAT);
 
-      const [uri, supply, price] = await marketContract.nftData(
-        ethers.constants.One
-      );
+      const nftData = await marketContract.nftData(TEST_BASE_ID);
 
-      expect(uri).to.equals(TEST_URI_1);
-      expect(supply).to.deep.equals(TEST_SUPPLY_1);
-      expect(price).to.deep.equals(TEST_PRICE_FIAT);
+      expect(nftData.uri).to.equals(TEST_URI_1);
+      expect(nftData.maxSupply).to.deep.equals(TEST_SUPPLY_1);
+      expect(nftData.price).to.deep.equals(TEST_PRICE_FIAT);
+      expect(nftData.class).to.deep.equals(ethers.constants.One);
+      expect(nftData.serial).to.deep.equals(ethers.constants.Zero);
     });
 
     it("Should fail due to unregistered class", async () => {
-      await expect(
-        marketContract.nftData(ethers.constants.One)
-      ).to.be.revertedWith("Market: unregistered NFT class");
+      await expect(marketContract.nftData(TEST_BASE_ID)).to.be.revertedWith(
+        "Market: unregistered NFT class"
+      );
     });
   });
 

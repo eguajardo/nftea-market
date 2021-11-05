@@ -5,6 +5,7 @@ import WrongNetworkAlert from "components/layout/WrongNetworkAlert";
 import Register from "pages/Register/Register";
 import Home from "pages/Home";
 import Profile from "pages/Profile/Profile";
+import MyCollection from "pages/MyCollection";
 
 function App() {
   return (
@@ -14,6 +15,9 @@ function App() {
       <Switch>
         <Route path="/register">
           <Register />
+        </Route>
+        <Route path="/collection">
+          <MyCollection />
         </Route>
         <Route path="/:stallId">
           <Profile />

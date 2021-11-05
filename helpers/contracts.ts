@@ -1,7 +1,7 @@
 export const contracts: any = {
   "localhost": {
     "ERC20PresetFixedSupply": {
-      "address": "0x0aBa96B57164A93529719e5bEe8A1FaA8cF67814",
+      "address": "0x0E047aa69A7f081a914fb70e95750B3A853A511C",
       "abi": [
         {
           "inputs": [
@@ -571,7 +571,7 @@ export const contracts: any = {
       ]
     },
     "Market": {
-      "address": "0x25c9f75aAe3730d45e036AD5CFe456a34eC38153",
+      "address": "0x280DDA0bfC4512DdCcF4563233542aC18Ce2D447",
       "abi": [
         {
           "inputs": [
@@ -868,27 +868,44 @@ export const contracts: any = {
         {
           "inputs": [
             {
-              "internalType": "uint128",
-              "name": "class_",
-              "type": "uint128"
+              "internalType": "uint256",
+              "name": "id_",
+              "type": "uint256"
             }
           ],
           "name": "nftData",
           "outputs": [
             {
-              "internalType": "string",
-              "name": "nftURI",
-              "type": "string"
-            },
-            {
-              "internalType": "uint128",
-              "name": "maxSupply",
-              "type": "uint128"
-            },
-            {
-              "internalType": "uint256",
-              "name": "price",
-              "type": "uint256"
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "uri",
+                  "type": "string"
+                },
+                {
+                  "internalType": "uint128",
+                  "name": "maxSupply",
+                  "type": "uint128"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "price",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint128",
+                  "name": "class",
+                  "type": "uint128"
+                },
+                {
+                  "internalType": "uint128",
+                  "name": "serial",
+                  "type": "uint128"
+                }
+              ],
+              "internalType": "struct Market.NFTData",
+              "name": "",
+              "type": "tuple"
             }
           ],
           "stateMutability": "view",

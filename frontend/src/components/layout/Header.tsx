@@ -24,6 +24,7 @@ function Header() {
     ) ?? [];
 
   console.log("account", account);
+  console.log("stallUri", stallUri);
 
   return (
     <div>
@@ -51,6 +52,11 @@ function Header() {
             <Nav className="ml-auto" as="ul">
               <Nav.Item as="li">
                 <Nav.Link href="/">Explore</Nav.Link>
+              </Nav.Item>
+              <Nav.Item as="li">
+                {account && (
+                  <Nav.Link href="/collection">My collection</Nav.Link>
+                )}
               </Nav.Item>
               <Nav.Item>
                 {!account && (

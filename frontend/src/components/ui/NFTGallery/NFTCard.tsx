@@ -28,7 +28,7 @@ function NFTCard({ onSelect, ...nft }: Properties) {
           <div>
             <span className="supply">
               Supply:{" "}
-              {nft.supply.isZero() ? "unlimited" : nft.supply.toString()}
+              {nft.maxSupply.isZero() ? "unlimited" : nft.maxSupply.toString()}
             </span>
           </div>
         </Card.Footer>

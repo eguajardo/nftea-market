@@ -51,8 +51,8 @@ contract ERC1155Serialized is ERC1155Supply, ERC1155Holder {
      * @return The metadata's URI of the given token ID
      */
     function uri(uint256 id_) public view virtual override returns (string memory) {
-        require(bytes(_uris[_tokenClass(id_)]).length > 0, "ERC1155Serialized: token URI does not exist");
-        return _uris[_tokenClass(id_)];
+        require(bytes(_uris[tokenClass(id_)]).length > 0, "ERC1155Serialized: token URI does not exist");
+        return _uris[tokenClass(id_)];
     }
 
     /**
@@ -63,6 +63,25 @@ contract ERC1155Serialized is ERC1155Supply, ERC1155Holder {
      */
     function totalSerialized(uint128 class_) public view virtual returns (uint128) {
         return _currentSerial[class_];
+    }
+
+    /**
+     * @dev Extract the token class from the ID `id_`
+     * @param id_ Token ID from which the class will be retrieved
+     * @return The token class representing the first uint128 half of the ID
+     */
+    function tokenClass(uint256 id_) public view virtual returns (uint128) {
+        return uint128(id_ >> 128);
+    }
+
+    /**
+     * @dev Extract the token class' serial number from the ID `id_`
+     * @param id_ Token ID from which the serial number will be retrieved
+     * @return The serial number representing the last uint128 half of the ID
+     * The serial number is relative to the token's class
+     */
+    function tokenSerialNumber(uint256 id_) public view virtual returns (uint128) {
+        return uint128(id_);
     }
 
     /**
@@ -157,24 +176,5 @@ contract ERC1155Serialized is ERC1155Supply, ERC1155Holder {
     function _toId(uint128 class_, uint128 serial_) internal view virtual returns (uint256) {
         return _toBaseId(class_) // cast to set first bytes to class
             | uint256(serial_); // same as above but then shift bytes to the end
-    }
-
-    /**
-     * @dev Extract the token class from the ID `id_`
-     * @param id_ Token ID from which the class will be retrieved
-     * @return The token class representing the first uint128 half of the ID
-     */
-    function _tokenClass(uint256 id_) internal view virtual returns (uint128) {
-        return uint128(id_ >> 128);
-    }
-
-    /**
-     * @dev Extract the token class' serial number from the ID `id_`
-     * @param id_ Token ID from which the serial number will be retrieved
-     * @return The serial number representing the last uint128 half of the ID
-     * The serial number is relative to the token's class
-     */
-    function _tokenSerialNumber(uint256 id_) internal view virtual returns (uint128) {
-        return uint128(id_);
     }
 }

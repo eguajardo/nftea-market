@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useContractCall, useContractCalls, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
+import { BigNumber } from "ethers";
 import { Market } from "types/typechain";
 import { Metadata } from "types/metadata";
 
@@ -184,7 +185,11 @@ function Profile() {
             <div className="mt-2">{metadata?.description}</div>
           )}
           {contentDisplaying === Content.NFTs && (
-            <NFTGallery nftsClasses={stallNFTClasses} />
+            <NFTGallery
+              nftsIds={stallNFTClasses.map((nftClass: BigNumber) =>
+                nftClass.shl(128)
+              )}
+            />
           )}
           {contentDisplaying === Content.NewNFT &&
             vendorAddress &&

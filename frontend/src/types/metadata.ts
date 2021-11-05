@@ -8,7 +8,9 @@ export type Metadata = {
 };
 
 export type NFTData = Metadata & {
-  supply: BigNumber;
+  uri: string;
+  maxSupply: BigNumber;
   price: BigNumber;
-  nftClass: BigNumber;
+  class: BigNumber;
+  serial?: BigNumber;
 };

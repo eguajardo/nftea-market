@@ -37,7 +37,8 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: process.env.RPC_NODE || "https://rpc-mumbai.maticvigil.com",
+        url: process.env.RPC_NODE!,
+        blockNumber: 21063861,
       },
       accounts: TEST_ACCOUNTS.map((account) => {
         return {

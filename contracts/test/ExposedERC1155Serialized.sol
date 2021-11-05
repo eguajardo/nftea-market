@@ -45,13 +45,4 @@ contract ExposedERC1155Serialized is ERC1155Serialized {
     function toId(uint128 class_, uint128 _serial) public view returns (uint256) {
         return _toId(class_, _serial);
     }
-
-    function tokenClass(uint256 _id) public view returns (uint128) {
-        return _tokenClass(_id);
-    }
-
-    function tokenSerialNumber(uint256 _id) public view returns (uint128) {
-        return _tokenSerialNumber(_id);
-    }
-
 }

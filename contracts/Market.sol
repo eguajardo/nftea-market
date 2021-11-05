@@ -49,6 +49,14 @@ contract Market is Context {
         string sponsorshipURI;
     }
 
+    struct NFTData {
+        string uri;
+        uint128 maxSupply;
+        uint256 price;
+        uint128 class;
+        uint128 serial;
+    }
+
     /**
      * @notice ERC-1155 token contract handling the NFTs for sale
      */
@@ -449,23 +457,24 @@ contract Market is Context {
 
     /**
      * @notice Returns data relevant to the NFT class
-     * @param class_ the class to retrieve data from
-     * @return nftURI the metadata URI
-     * @return maxSupply the class max supply, zero if unlimited
-     * @return price NFT price in fiat cents
+     * @param id_ the NFT id to retrieve data from
+     * @return a struct NFTData with all relevant data
      */
     function nftData(
-        uint128 class_
+        uint256 id_
     ) public view returns (
-        string memory nftURI,
-        uint128 maxSupply,
-        uint256 price
+        NFTData memory
     ) {
-        require(bytes(_nftStalls[class_]).length > 0, "Market: unregistered NFT class");
+        uint128 class = nftContract.tokenClass(id_);
+        require(bytes(_nftStalls[class]).length > 0, "Market: unregistered NFT class");
 
-        nftURI = nftContract.uri(uint256(class_) << 128); // needs to be converted to base ID
-        maxSupply = nftContract.maxSupply(class_);
-        price = _nftPrices[class_];
+        return NFTData({
+            uri: nftContract.uri(id_),
+            maxSupply: nftContract.maxSupply(class),
+            price: _nftPrices[class],
+            class: class,
+            serial: nftContract.tokenSerialNumber(id_)
+        });
     }
 
     /**

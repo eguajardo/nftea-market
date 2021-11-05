@@ -63,7 +63,7 @@ function NFTView(nft: NFTData) {
     console.log("library", library, library.getSigner());
     const { v, r, s, nonce, validBefore } = await signAuthorization(library, {
       from: account,
-      to: await marketContract.paymentAddress(nft.nftClass),
+      to: await marketContract.paymentAddress(nft.class),
       value: nft.price,
     });
 
@@ -72,8 +72,7 @@ function NFTView(nft: NFTData) {
       statusTitle: "Purchasing NFT...",
     });
 
-    console.log("signature", v, r, s, nonce, validBefore);
-    sendBuyNFT(nft.nftClass, nonce, validBefore, v, r, s);
+    sendBuyNFT(nft.class, nonce, validBefore, v, r, s);
   };
 
   const onSubmitError = async (err: any) => {
@@ -117,7 +116,7 @@ function NFTView(nft: NFTData) {
             <div>${(nft.price.toNumber() / 100).toFixed(2)} USD</div>
             <span className="mt-1 supply">
               Supply:{" "}
-              {nft.supply.isZero() ? "unlimited" : nft.supply.toString()}
+              {nft.maxSupply.isZero() ? "unlimited" : nft.maxSupply.toString()}
             </span>
           </h2>
           <h5 className="category">Description</h5>

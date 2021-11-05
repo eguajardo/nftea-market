@@ -10,7 +10,7 @@ import NFTCard from "components/ui/NFTGallery/NFTCard";
 
 import "./style.scss";
 
-function NFTGallery(props: { nftsClasses: BigNumber[] }) {
+function NFTGallery(props: { nftsIds: BigNumber[] }) {
   console.log("render NFTs");
 
   const [nftSelected, setNFTSelected] = useState<NFTData>();
@@ -18,37 +18,37 @@ function NFTGallery(props: { nftsClasses: BigNumber[] }) {
   const marketContract: Market = useContract("Market")!;
 
   const nftsData = useContractCalls(
-    props.nftsClasses
-      ? props.nftsClasses.map((nftClass: BigNumber) => {
+    props.nftsIds
+      ? props.nftsIds.map((id: BigNumber) => {
           return {
             abi: marketContract.interface,
             address: marketContract.address,
             method: "nftData",
-            args: [nftClass],
+            args: [id],
           };
         })
       : []
   );
+
+  console.log("nftsData", nftsData);
 
   useEffect(() => {
     if (nftsData) {
       Promise.all(
         nftsData
           .filter((element) => !!element)
-          .map(async (data, index): Promise<NFTData> => {
-            const [uri, supply, price] = data!;
+          .map(async (data): Promise<NFTData> => {
+            const [nftData]: NFTData[] = data!;
             return {
-              ...(await getJSONMetadata(uri)),
-              supply: supply,
-              price: price,
-              nftClass: props.nftsClasses[index],
+              ...(await getJSONMetadata(nftData.uri)),
+              ...nftData,
             };
           })
       ).then((result: NFTData[]) => {
         setNFTs(result);
       });
     }
-  }, [nftsData, props.nftsClasses]);
+  }, [nftsData, props.nftsIds]);
 
   const selectNFT = (nft: NFTData) => {
     setNFTSelected(nft);
@@ -60,11 +60,7 @@ function NFTGallery(props: { nftsClasses: BigNumber[] }) {
         !nftSelected &&
         nfts.map((nft) => {
           return (
-            <NFTCard
-              key={nft.nftClass.toString()}
-              {...nft}
-              onSelect={selectNFT}
-            />
+            <NFTCard key={nft.class.toString()} {...nft} onSelect={selectNFT} />
           );
         })}
       {nftSelected && <NFTView {...nftSelected} />}
