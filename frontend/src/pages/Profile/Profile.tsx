@@ -9,6 +9,7 @@ import { Metadata } from "types/metadata";
 
 import NFTGallery from "components/ui/NFTGallery/NFTGallery";
 import NewNFT from "./NewNFT";
+import NewSponsorship from "./NewSponsorship";
 
 import {
   Button,
@@ -33,6 +34,7 @@ export enum Content {
   NFTs,
   Sponsorships,
   NewNFT,
+  NewSponsorship,
 }
 
 const classNames = require("classnames");
@@ -101,7 +103,11 @@ function Profile() {
             >
               Create NFT
             </Button>
-            <Button variant="warning" size="sm">
+            <Button
+              variant="warning"
+              size="sm"
+              onClick={() => setContentDisplaying(Content.NewSponsorship)}
+            >
               Request sponsorship
             </Button>
           </Container>
@@ -195,6 +201,11 @@ function Profile() {
             vendorAddress &&
             vendorAddress === account && (
               <NewNFT setContentDisplaying={setContentDisplaying} />
+            )}
+          {contentDisplaying === Content.NewSponsorship &&
+            vendorAddress &&
+            vendorAddress === account && (
+              <NewSponsorship setContentDisplaying={setContentDisplaying} />
             )}
         </div>
       </div>

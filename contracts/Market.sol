@@ -320,7 +320,8 @@ contract Market is Context {
      * @param sponsorshipURI_ Metadata URI holding the sponsorship ad details
      * @param requestedAmount_ The amount requested by the content creator
      * to be able to deliver. Value must be in the fiat smallest denomination,
-     * e.g. 100 (cents) equals 1 USD
+     * e.g. 100 (cents) equals 1 USD. If 0 amount was requested, then it works
+     * as if the shares are being auctioned
      * @param deadline_ Timestamp as seconds in unix epoch representing the 
      * deadline to meet the sponsorship goal.
      */

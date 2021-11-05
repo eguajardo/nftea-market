@@ -2,12 +2,13 @@ import { uploadJSONMetadata, uploadFile } from "helpers/ipfs";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 
 import { useCallback, useEffect, useState } from "react";
-import { useContractFunction } from "@usedapp/core";
+import { useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
 import useFormAlert from "hooks/useFormAlert";
 
 import { FormProcessingStatus, FormState } from "types/forms";
+import { Metadata } from "types/metadata";
 import { Market } from "types/typechain";
 
 import FormGroup from "components/ui/FormGroup/FormGroup";
@@ -15,10 +16,10 @@ import SubmitButton from "components/ui/SubmitButton";
 import { Col, Row } from "react-bootstrap";
 import { Content } from "./Profile";
 
-function NewNFT(props: {
+function NewSponsorship(props: {
   setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
 }) {
-  console.log("render NewNFT");
+  console.log("render NewSponsorship");
   const {
     formFields,
     createValueChangeHandler,
@@ -33,8 +34,8 @@ function NewNFT(props: {
         {
           type: "text",
           id: "title",
-          label: "Title",
-          placeholder: "Cybertea",
+          label: "Sponsorship Ad title",
+          placeholder: "Need support with an awesome project!",
           validator: (field): string | null => {
             if (!field.value || field.value.trim() === "") {
               return "Title must not be empty!";
@@ -49,9 +50,9 @@ function NewNFT(props: {
         {
           type: "textarea",
           id: "description",
-          label: "Description",
+          label: "Sponsorship description",
           placeholder:
-            "This cup of tea lives in the year 2077 where blockchain technology has taken over the world",
+            "Help me get this project started by sponsoring me and receive a % from this NFT sales proportional to your contribution...",
           validator: (field) => {
             if (!field.value || field.value.trim() === "") {
               return "Description must not be empty!";
@@ -61,11 +62,48 @@ function NewNFT(props: {
         },
       ],
       [
+        "percent",
+        {
+          type: "number",
+          id: "percent",
+          label: "% of sales reserved for sponsors",
+          step: 0.01,
+          placeholder: parseFloat("7.25").toFixed(2),
+          prepend: "%",
+          validator: (field) => {
+            if (!field.value || field.value <= 0) {
+              return "Percent must be greater than zero!";
+            }
+
+            return null;
+          },
+        },
+      ],
+      [
+        "amount",
+        {
+          type: "number",
+          id: "amount",
+          label: "Requested amount",
+          step: 0.01,
+          placeholder: parseFloat("2000").toFixed(2),
+          prepend: "$",
+          append: "USD",
+          validator: (field) => {
+            if (!field.value || field.value < 0) {
+              return "Amount must be greater or equal than zero!";
+            }
+
+            return null;
+          },
+        },
+      ],
+      [
         "supply",
         {
           type: "number",
           id: "supply",
-          label: "Copies",
+          label: "NFT copies",
           step: 1,
           value: 0,
           placeholder: "Leave zero for unlimited",
@@ -86,7 +124,7 @@ function NewNFT(props: {
         {
           type: "number",
           id: "price",
-          label: "Price",
+          label: "NFT price",
           step: 0.01,
           placeholder: parseFloat("10").toFixed(2),
           prepend: "$",
@@ -106,13 +144,9 @@ function NewNFT(props: {
         {
           type: "file",
           id: "image",
-          label: "Image",
+          label: "Sponsorship Ad image (optional)",
           placeholder: "Drag & drop or click to select file",
           validator: (field) => {
-            if (!field.value || field.value.trim() === "") {
-              return "Image is missing!";
-            }
-
             return null;
           },
         },
@@ -123,34 +157,46 @@ function NewNFT(props: {
   const [formState, setFormState] = useState<FormState>({});
   const { successAlertResult } = useFormAlert(formState);
   const marketContract: Market = useContract("Market")!;
+  const { library } = useEthers();
 
-  const { state: postNFTState, send: postNFTForSale } = useContractFunction(
-    marketContract,
-    "postNFTForSale"
-  );
+  const { state: requestSponsorshipState, send: sendRequestSponsorship } =
+    useContractFunction(marketContract, "requestSponsorship");
 
   const onSubmit = async () => {
-    postNFTState.status = "None";
+    requestSponsorshipState.status = "None";
     setFormState({
       status: FormProcessingStatus.Processing,
-      statusTitle: "Creating NFT...",
+      statusTitle: "Creating sponsorship...",
     });
 
-    const imageUri = await uploadFile(
-      formFields.get("image")!.enteredFiles![0]
-    );
-
-    const uri: string = await uploadJSONMetadata({
+    const metadata: Metadata = {
       name: formFields.get("title")!.value,
       description: formFields.get("description")!.value,
-      image: imageUri,
-    });
+    };
 
-    postNFTForSale(
-      uri,
+    if (
+      formFields.get("image")?.enteredFiles &&
+      formFields.get("image")!.enteredFiles!.length > 0
+    ) {
+      metadata.image = await uploadFile(
+        formFields.get("image")!.enteredFiles![0]
+      );
+    }
+
+    const uri: string = await uploadJSONMetadata(metadata);
+
+    const blockNumber: number = await library!.getBlockNumber();
+    let timestamp: number = (await library!.getBlock(blockNumber)).timestamp;
+    timestamp = timestamp + 86400 * 30; // Seven days from block
+
+    sendRequestSponsorship(
       formFields.get("supply")!.value,
       // Convert to cents and remove decimals created by precision errors
-      (formFields.get("price")!.value * 100).toFixed(0)
+      (formFields.get("price")!.value * 100).toFixed(0),
+      (formFields.get("percent")!.value * 100).toFixed(0),
+      uri,
+      formFields.get("amount")!.value,
+      timestamp
     );
   };
 
@@ -162,26 +208,32 @@ function NewNFT(props: {
   };
 
   useEffect(() => {
-    if (postNFTState && formState.status === FormProcessingStatus.Processing) {
-      switch (postNFTState.status) {
+    if (
+      requestSponsorshipState &&
+      formState.status === FormProcessingStatus.Processing
+    ) {
+      switch (requestSponsorshipState.status) {
         case "Success":
-          console.log("NFT created");
+          console.log("Sponsorship created");
           setFormState({
             status: FormProcessingStatus.Success,
-            statusMessage: "NFT created!",
+            statusMessage: "Sponsorship created!",
           });
           break;
         case "Exception":
         case "Fail":
           setFormState({
             status: FormProcessingStatus.Error,
-            statusMessage: postNFTState.errorMessage,
+            statusMessage: requestSponsorshipState.errorMessage,
           });
-          console.error("Transaction Error:", postNFTState.errorMessage);
+          console.error(
+            "Transaction Error:",
+            requestSponsorshipState.errorMessage
+          );
           break;
       }
     }
-  }, [postNFTState, formState.status]);
+  }, [requestSponsorshipState, formState.status]);
 
   const waitSuccessAlertDismiss = useCallback(async () => {
     if (
@@ -189,7 +241,7 @@ function NewNFT(props: {
       successAlertResult
     ) {
       resetForm();
-      props.setContentDisplaying(Content.NFTs);
+      props.setContentDisplaying(Content.Sponsorships);
     }
   }, [formState.status, successAlertResult, resetForm, props]);
 
@@ -224,6 +276,28 @@ function NewNFT(props: {
               onBlur={createInputBlurHandler(formFields.get("description")!)}
               error={hasError(formFields.get("description")!)}
             />
+            <Row>
+              <Col>
+                <FormGroup
+                  key={formFields.get("percent")!.id}
+                  field={formFields.get("percent")!}
+                  onChange={createValueChangeHandler(
+                    formFields.get("percent")!
+                  )}
+                  onBlur={createInputBlurHandler(formFields.get("percent")!)}
+                  error={hasError(formFields.get("percent")!)}
+                />
+              </Col>
+              <Col>
+                <FormGroup
+                  key={formFields.get("amount")!.id}
+                  field={formFields.get("amount")!}
+                  onChange={createValueChangeHandler(formFields.get("amount")!)}
+                  onBlur={createInputBlurHandler(formFields.get("amount")!)}
+                  error={hasError(formFields.get("amount")!)}
+                />
+              </Col>
+            </Row>
             <Row>
               <Col>
                 <FormGroup
@@ -270,4 +344,4 @@ function NewNFT(props: {
   );
 }
 
-export default NewNFT;
+export default NewSponsorship;
