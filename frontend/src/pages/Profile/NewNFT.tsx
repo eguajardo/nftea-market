@@ -148,7 +148,8 @@ function NewNFT(props: {
     postNFTForSale(
       uri,
       formFields.get("supply")!.value,
-      formFields.get("price")!.value * 100 // Convert to cents
+      // Convert to cents and remove decimals created by precision errors
+      (formFields.get("price")!.value * 100).toFixed(0)
     );
   };
 
