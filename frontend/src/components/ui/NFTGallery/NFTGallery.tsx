@@ -60,7 +60,11 @@ function NFTGallery(props: { nftsIds: BigNumber[] }) {
         !nftSelected &&
         nfts.map((nft) => {
           return (
-            <NFTCard key={nft.class.toString()} {...nft} onSelect={selectNFT} />
+            <NFTCard
+              key={nft.serial.toString() + " :: " + nft.class.toString()}
+              {...nft}
+              onSelect={selectNFT}
+            />
           );
         })}
       {nftSelected && <NFTView {...nftSelected} />}

@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import useFormAlert from "hooks/useFormAlert";
+import useAuthorizationSignature from "hooks/useAuthorizationSignature";
+import { useHistory } from "react-router-dom";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 import { Button, Col, Row, Image } from "react-bootstrap";
 import { NFTData } from "types/metadata";
 import { Market } from "types/typechain";
 import { FormProcessingStatus, FormState } from "types/forms";
-import useAuthorizationSignature from "hooks/useAuthorizationSignature";
 
 function NFTView(nft: NFTData) {
+  const routerHistory = useHistory();
   const [formState, setFormState] = useState<FormState>({});
-  const { Alert } = useFormAlert(formState);
+  const { Alert, successAlertResult } = useFormAlert(formState);
 
   const marketContract: Market = useContract<Market>("Market")!;
   const { account, library } = useEthers();
@@ -104,32 +106,67 @@ function NFTView(nft: NFTData) {
     }
   }, [buyNFTState, formState.status]);
 
+  const waitSuccessAlertDismiss = useCallback(async () => {
+    if (
+      formState.status === FormProcessingStatus.Success &&
+      successAlertResult
+    ) {
+      routerHistory.push("/collection");
+    }
+  }, [formState.status, routerHistory, successAlertResult]);
+
+  useEffect(() => {
+    waitSuccessAlertDismiss();
+  }, [waitSuccessAlertDismiss]);
+
   return (
     <div>
       <Row>
         <Col lg="6" md="12">
           <Image src={nft.image} className="align-middle" />
         </Col>
-        <Col className="mx-auto" lg="6" md="12">
+        <Col className="mx-auto nft-details" lg="6" md="12">
           <h2 className="title">{nft.name}</h2>
-          <h2 className="main-price">
-            <div>${(nft.price.toNumber() / 100).toFixed(2)} USD</div>
-            <span className="mt-1 supply">
-              Supply:{" "}
-              {nft.maxSupply.isZero() ? "unlimited" : nft.maxSupply.toString()}
-            </span>
-          </h2>
+          {nft.serial.isZero() && (
+            <h2 className="main-price">
+              <div className="text-info">
+                ${(nft.price.toNumber() / 100).toFixed(2)} USD
+              </div>
+              <span className="mt-1 supply">
+                Max supply:{" "}
+                {nft.maxSupply.isZero()
+                  ? "unlimited"
+                  : nft.maxSupply.toString()}
+              </span>
+            </h2>
+          )}
+          {!nft.serial.isZero() && (
+            <h2 className="main-price">
+              <div className="text-info supply mt-1 ">
+                <span className="mr-1">Serial No.</span>
+                <span className="serial">{nft.serial.toString()}</span>
+                <span className="ml-1">
+                  of{" "}
+                  {nft.maxSupply.isZero()
+                    ? "unlimited"
+                    : nft.maxSupply.toString()}
+                </span>
+              </div>
+            </h2>
+          )}
           <h5 className="category">Description</h5>
           <p className="description">{nft.description}</p>
           <Row className="justify-content-start mt-4">
-            <Button
-              className="ml-3"
-              color="warning"
-              onClick={createSubmissionHandler(onSubmit, onSubmitError)}
-            >
-              <i className="tim-icons icon-cart mr-2" />
-              Buy 
-            </Button>
+            {nft.serial.isZero() && (
+              <Button
+                className="ml-3"
+                color="warning"
+                onClick={createSubmissionHandler(onSubmit, onSubmitError)}
+              >
+                <i className="tim-icons icon-cart mr-2" />
+                Buy 
+              </Button>
+            )}
           </Row>
         </Col>
       </Row>

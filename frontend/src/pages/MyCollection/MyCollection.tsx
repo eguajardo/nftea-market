@@ -4,7 +4,10 @@ import { useContract } from "hooks/useContract";
 import { Market } from "types/typechain";
 import { BigNumber } from "ethers";
 
+import { Container } from "react-bootstrap";
 import NFTGallery from "components/ui/NFTGallery/NFTGallery";
+
+import "./style.scss";
 
 function MyCollection() {
   const [nftIds, setNFTIds] = useState<BigNumber[]>();
@@ -38,7 +41,16 @@ function MyCollection() {
     loadNFTs();
   }, [loadNFTs]);
 
-  return <div>{nftIds && <NFTGallery nftsIds={nftIds} />}</div>;
+  return (
+    <div>
+      <div className="page-header page-header-xs">
+        <Container className="mt-4">
+          <h1 className="text-primary">My collection</h1>
+        </Container>
+      </div>
+      <Container>{nftIds && <NFTGallery nftsIds={nftIds} />}</Container>
+    </div>
+  );
 }
 
 export default MyCollection;

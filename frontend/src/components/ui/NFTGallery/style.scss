@@ -24,14 +24,33 @@
       max-height: 100%;
     }
   }
+
+  .card-title {
+    cursor: pointer;
+  }
 }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
+  color: rgba($color: #fff, $alpha: 0.8);
+
+  .serial-container {
+    width: 100%;
+    display: flex !important;
+    justify-content: right;
+    align-items: baseline;
+    color: $opacity-5;
+    font-size: $font-size-sm !important;
+
+    .serial {
+      color: $info;
+      font-size: $font-size-xl !important;
+    }
+  }
 }
 
-.main-price {
+.nft-details {
   .supply {
     line-height: 1.45em;
     color: $opacity-8;

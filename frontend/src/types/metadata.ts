@@ -12,5 +12,5 @@ export type NFTData = Metadata & {
   maxSupply: BigNumber;
   price: BigNumber;
   class: BigNumber;
-  serial?: BigNumber;
+  serial: BigNumber;
 };
