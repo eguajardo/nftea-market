@@ -69,6 +69,7 @@ yarn start
 
 - IMPORTANT web3.storage and nft.storage API keys are not really secret. Any API key must be an environment variable in server-side code. Any react environment variable will include the key in the build and be visible to anyone. See https://create-react-app.dev/docs/adding-custom-environment-variables/
 - Currently the front end is hardcoded to use the testnet stablecoin currency deployed in step 2 of `Run and deploy`. Before deploying to mainnet, some configuration would be required to set the right stablecoin contract, e.g. USDC
+- Hardhat network fork and smart contract logs retrieval use a hardcoded blocknumber as origin. This functionality should be changed in the future before going mainnet to use something like The Graph
 
 ---
 
