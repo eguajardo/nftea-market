@@ -440,6 +440,7 @@ describe("Market contract", () => {
       expect(nftData.price).to.deep.equals(TEST_PRICE_FIAT);
       expect(nftData.class).to.deep.equals(ethers.constants.One);
       expect(nftData.serial).to.deep.equals(ethers.constants.Zero);
+      expect(nftData.stallName).to.equals(STALL_NAME_REGISTERED);
     });
 
     it("Should fail due to unregistered class", async () => {

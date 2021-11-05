@@ -42,7 +42,7 @@ function MyCollection() {
   }, [loadNFTs]);
 
   return (
-    <div>
+    <div className="mb-4">
       <div className="page-header page-header-xs">
         <Container className="mt-4">
           <h1 className="text-primary">My collection</h1>

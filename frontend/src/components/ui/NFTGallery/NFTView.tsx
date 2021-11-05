@@ -3,7 +3,7 @@ import { useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import useFormAlert from "hooks/useFormAlert";
 import useAuthorizationSignature from "hooks/useAuthorizationSignature";
-import { useHistory } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 import { Button, Col, Row, Image } from "react-bootstrap";
 import { NFTData } from "types/metadata";
@@ -129,7 +129,7 @@ function NFTView(nft: NFTData) {
           <h2 className="title">{nft.name}</h2>
           {nft.serial.isZero() && (
             <h2 className="main-price">
-              <div className="text-info">
+              <div className="text-primary">
                 ${(nft.price.toNumber() / 100).toFixed(2)} USD
               </div>
               <span className="mt-1 supply">
@@ -142,9 +142,17 @@ function NFTView(nft: NFTData) {
           )}
           {!nft.serial.isZero() && (
             <h2 className="main-price">
-              <div className="text-info supply mt-1 ">
+              <div>
+                <span className="mr-2">by</span>
+                <Link to={nft.stallName} className="text-info">
+                  {nft.stallName}
+                </Link>
+              </div>
+              <div className="supply mt-1 ">
                 <span className="mr-1">Serial No.</span>
-                <span className="serial">{nft.serial.toString()}</span>
+                <span className="serial text-success">
+                  {nft.serial.toString()}
+                </span>
                 <span className="ml-1">
                   of{" "}
                   {nft.maxSupply.isZero()

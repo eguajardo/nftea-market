@@ -55,6 +55,7 @@ contract Market is Context {
         uint256 price;
         uint128 class;
         uint128 serial;
+        string stallName;
     }
 
     /**
@@ -466,14 +467,16 @@ contract Market is Context {
         NFTData memory
     ) {
         uint128 class = nftContract.tokenClass(id_);
-        require(bytes(_nftStalls[class]).length > 0, "Market: unregistered NFT class");
+        string memory stallName = _nftStalls[class];
+        require(bytes(stallName).length > 0, "Market: unregistered NFT class");
 
         return NFTData({
             uri: nftContract.uri(id_),
             maxSupply: nftContract.maxSupply(class),
             price: _nftPrices[class],
             class: class,
-            serial: nftContract.tokenSerialNumber(id_)
+            serial: nftContract.tokenSerialNumber(id_),
+            stallName: stallName
         });
     }
 
