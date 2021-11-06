@@ -627,6 +627,52 @@ describe("Market contract", () => {
     });
   });
 
+  describe("requestSponsorship", async () => {
+    let deadline: number;
+
+    beforeEach(async () => {
+      deadline = await daysFromBlock(TEST_DAYS_TO_DEADLINE);
+      await marketContract
+        .connect(vendor)
+        .requestSponsorship(
+          TEST_SUPPLY_1,
+          TEST_PRICE_FIAT,
+          TEST_SPONSOR_SHARES,
+          TEST_URI_1,
+          TEST_REQUESTED_AMOUNT,
+          deadline
+        );
+    });
+
+    it("Should retrieve sponsorship data", async () => {
+      const data = await marketContract.sponsorshipData(
+        TEST_SPONSORSHIP_ID,
+        STALL_NAME_REGISTERED
+      );
+
+      expect(data.uri).to.equals(TEST_URI_1);
+      expect(data.maxSupply).to.equals(TEST_SUPPLY_1);
+      expect(data.price).to.equals(TEST_PRICE_FIAT);
+      expect(data.stallName).to.equals(STALL_NAME_REGISTERED);
+      expect(data.sponsorshipId).to.equals(TEST_SPONSORSHIP_ID);
+      expect(data.sponsorsShares).to.equals(TEST_SPONSOR_SHARES);
+      expect(data.requestedAmount).to.equals(TEST_REQUESTED_AMOUNT);
+      expect(data.deadline).to.equals(deadline);
+      expect(data.active).to.equals(true);
+      expect(data.sponsorsQuantity).to.equals(ethers.constants.Zero);
+      expect(data.totalFunds).to.equals(ethers.constants.Zero);
+    });
+
+    it("Should fail due to sponsorship not being registered to the stall", async () => {
+      await expect(
+        marketContract.sponsorshipData(
+          TEST_SPONSORSHIP_ID,
+          STALL_NAME_UNREGISTERED
+        )
+      ).to.be.revertedWith("Market: sponsorship not registered to stall");
+    });
+  });
+
   describe("postSponsoredNFTForSale", async () => {
     let escrowContract: SponsorshipEscrow;
     let expectedTotalFunds: BigNumber;

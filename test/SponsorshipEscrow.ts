@@ -388,6 +388,53 @@ describe("SponsorshipEscrow contract", async () => {
     });
   });
 
+  describe("sponsorshipData", async () => {
+    let testDeadline: number;
+
+    beforeEach(async () => {
+      testDeadline = await daysFromBlock(TEST_DAYS_TO_DEADLINE);
+
+      await escrowContract.registerSponsortship(
+        TEST_REQUESTED_AMOUNT,
+        testDeadline,
+        beneficiary.address
+      );
+
+      await createTestDeposit(
+        TEST_REQUESTED_AMOUNT,
+        TEST_SPONSORSHIP_ID,
+        sponsor1
+      );
+      await createTestDeposit(
+        TEST_REQUESTED_AMOUNT,
+        TEST_SPONSORSHIP_ID,
+        sponsor1
+      );
+      await createTestDeposit(
+        TEST_REQUESTED_AMOUNT,
+        TEST_SPONSORSHIP_ID,
+        sponsor2
+      );
+    });
+
+    it("Should retrieve sponsorship data", async () => {
+      const [requestedAmount, deadline, active, sponsorsQuantity, totalFunds] =
+        await escrowContract.sponsorshipData(TEST_SPONSORSHIP_ID);
+
+      expect(requestedAmount).to.equals(TEST_REQUESTED_AMOUNT);
+      expect(deadline).to.equals(testDeadline);
+      expect(active).to.equals(true);
+      expect(sponsorsQuantity).to.equals(BigNumber.from(2));
+      expect(totalFunds).to.deep.equals(TEST_REQUESTED_AMOUNT.mul(3));
+    });
+
+    it("Should fail due to inexistend sponsorship", async () => {
+      await expect(
+        escrowContract.sponsorshipData(TEST_SPONSORSHIP_ID.add(1))
+      ).to.be.revertedWith("SponsorshipEscrow: sponsorship id does not exits");
+    });
+  });
+
   describe("refund", async () => {
     beforeEach(async () => {
       await createTestSponsorshipAndDeposits(TEST_DEPOSIT_AMOUNT);

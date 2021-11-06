@@ -87,6 +87,34 @@ contract SponsorshipEscrow is Ownable {
     }
 
     /**
+     * @notice Returns relevant sponsorhip data
+     * @param sponsorshipId_ The ID of the sponsorship requested
+     * @return requestedAmount The amount requested by the content creator
+     * @return deadline Timestamp as seconds in uninx epoch representing the
+     * deadline to meet the sponsorship goal
+     * @return active True if the sponsorship is active, false otherwise
+     * @return sponsorsQuantity How many sponsors have contributed
+     * @return totalFunds The amount of funds raised
+     */
+    function sponsorshipData(uint256 sponsorshipId_) public view returns(
+        uint256 requestedAmount,
+        uint256 deadline,
+        bool active,
+        uint256 sponsorsQuantity, 
+        uint256 totalFunds
+    ) {
+        Sponsorship storage sponsorship = _sponsorships[sponsorshipId_];
+
+        require(sponsorship.beneficiary != address(0), "SponsorshipEscrow: sponsorship id does not exits");
+
+        requestedAmount = sponsorship.requestedAmount;
+        deadline = sponsorship.deadline;
+        active = sponsorship.active;
+        sponsorsQuantity = sponsorship.sponsors.length;
+        totalFunds = sponsorship.totalFunds;
+    }
+
+    /**
      * @notice Registers a new sponsorship. Only this contract's owner
      * is allowed to execute this function
      * @param requestedAmount_ The amount requested by the content creator

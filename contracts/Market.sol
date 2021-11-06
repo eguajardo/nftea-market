@@ -58,6 +58,20 @@ contract Market is Context {
         string stallName;
     }
 
+    struct SponsorshipData {
+        string uri;
+        uint128 maxSupply;
+        uint256 price;
+        string stallName;
+        uint256 sponsorshipId;
+        uint256 sponsorsShares;
+        uint256 requestedAmount;
+        uint256 deadline;
+        bool active;
+        uint256 sponsorsQuantity;
+        uint256 totalFunds;
+    }
+
     /**
      * @notice ERC-1155 token contract handling the NFTs for sale
      */
@@ -482,6 +496,47 @@ contract Market is Context {
     }
 
     /**
+     * @notice Returns data relevant to a sponsorship. All amounts are in fiat
+     * @param sponsorshipId_ The sponsorship ID to retrieve data from
+     * @param stallName_ The stall ID where this sponsorship belongs
+     * @return a struct SponsorshipData with all relevant data
+     */
+    function sponsorshipData(
+        uint256 sponsorshipId_,
+        string calldata stallName_
+    ) public view returns (
+        SponsorshipData memory
+    ) {
+        NFTSponsorship memory nftSponsorship = _stallSponsorships[stallName_][sponsorshipId_];
+        require(
+            bytes(nftSponsorship.sponsorshipURI).length > 0,
+            "Market: sponsorship not registered to stall"
+        );
+
+        (
+            uint256 requestedAmount,
+            uint256 deadline,
+            bool active,
+            uint256 sponsorsQuantity, 
+            uint256 totalFunds
+        ) = escrow.sponsorshipData(sponsorshipId_);
+
+        return SponsorshipData({
+            uri: nftSponsorship.sponsorshipURI,
+            maxSupply: nftSponsorship.supply,
+            price: nftSponsorship.price,
+            stallName: stallName_,
+            sponsorshipId: sponsorshipId_,
+            sponsorsShares: nftSponsorship.sponsorsShares,
+            requestedAmount: _stablecoinToFiat(requestedAmount),
+            deadline: deadline,
+            active: active,
+            sponsorsQuantity: sponsorsQuantity,
+            totalFunds: _stablecoinToFiat(totalFunds)
+        });
+    }
+
+    /**
      * @notice Returns the stall name registered to`vendor_` address
      * @param vendor_ The account address to whom the stall belongs to
      * @return the stall name registered to the vendor
@@ -535,6 +590,21 @@ contract Market is Context {
     function _fiatToStablecoin(uint256 amount_) internal view returns (uint256) {
         uint8 additionalDecimals = stablecoinDecimals - FIAT_DECIMALS;
         return amount_ * 10 ** additionalDecimals;
+    }
+
+    /**
+     * @dev Converts an amount in the smallest denomination of the stablecoin 
+     * currency to the same amount in the fiat smallest denomination
+     * @param amount_ The amount to convert in the smallest denomination, 
+     * e.g. 1000000 to represent 1 USDC since USDC has 6 decimals
+     * @return the amount converted to fiat.
+     * Example converting 1000000 USDC to USD cents:
+     * amount_ = 1000000 USDC
+     * returns 100 USD cents
+     */
+    function _stablecoinToFiat(uint256 amount_) internal view returns (uint256) {
+        uint8 additionalDecimals = stablecoinDecimals - FIAT_DECIMALS;
+        return amount_ / 10 ** additionalDecimals;
     }
 
     /**
