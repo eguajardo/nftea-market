@@ -1,9 +1,9 @@
 import { contracts } from "../helpers/contracts";
-import { Contract, ethers } from "ethers";
+import { BaseContract, ethers } from "ethers";
 import { useEthers, getChainName } from "@usedapp/core";
 import { useMemo } from "react";
 
-export function useContract<T extends Contract>(
+export function useContract<T extends BaseContract>(
   contractName: string
 ): T | null {
   const { chainId, library } = useEthers();

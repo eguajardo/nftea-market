@@ -1,5 +1,6 @@
 import { getJSONMetadata } from "helpers/ipfs";
-import { useEffect, useState } from "react";
+import { parseLog } from "helpers/logs";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useContractCall, useContractCalls, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
@@ -28,6 +29,7 @@ import headerImage from "assets/img/light.jpeg";
 import profileImage from "assets/img/james.jpg";
 
 import "./style.scss";
+import SponsorshipGallery from "components/ui/SponsorshipGallery/SponsorshipGallery";
 
 export enum Content {
   About,
@@ -44,10 +46,11 @@ function Profile() {
   const { stallId } = useParams<{ stallId: string }>();
   const marketContract: Market = useContract<Market>("Market")!;
   const [metadata, setMetadata] = useState<Metadata>();
+  const [sponsorshipsIds, setSponsorshipsIds] = useState<BigNumber[]>([]);
   const [contentDisplaying, setContentDisplaying] = useState<Content>(
     Content.About
   );
-  const { account } = useEthers();
+  const { account, library } = useEthers();
 
   const [stallUri, vendorAddress] =
     useContractCalls([
@@ -85,6 +88,26 @@ function Profile() {
       getJSONMetadata(stallUri).then((result) => setMetadata(result));
     }
   }, [stallUri]);
+
+  const loadSponsorships = useCallback(async () => {
+    if (!library || !marketContract) {
+      return;
+    }
+
+    const filter = marketContract.filters.Sponsorship(null, stallId);
+    const loadedSponsorshipIDs: BigNumber[] = await parseLog<BigNumber>(
+      filter,
+      library,
+      marketContract.interface,
+      0
+    );
+
+    setSponsorshipsIds(loadedSponsorshipIDs);
+  }, [library, marketContract, stallId]);
+
+  useEffect(() => {
+    loadSponsorships();
+  }, [loadSponsorships, contentDisplaying]);
 
   return (
     <Container>
@@ -195,6 +218,12 @@ function Profile() {
               nftsIds={stallNFTClasses.map((nftClass: BigNumber) =>
                 nftClass.shl(128)
               )}
+            />
+          )}
+          {contentDisplaying === Content.Sponsorships && (
+            <SponsorshipGallery
+              sponsorshipsIds={sponsorshipsIds}
+              stallId={stallId}
             />
           )}
           {contentDisplaying === Content.NewNFT &&

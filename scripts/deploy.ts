@@ -6,6 +6,8 @@ import {
   ERC20PresetFixedSupply,
   ERC20PresetFixedSupply__factory,
   Market__factory,
+  MultiToken,
+  SponsorshipEscrow,
 } from "../typechain";
 
 const NETWORKS_LOCAL: Array<string> = ["hardhat", "localhost"];
@@ -37,9 +39,21 @@ const deployMarketContract = async (currencyContractAddress: string) => {
     currencyContractAddress,
     ERC20_CURRENCY_DECIMALS
   );
-
   await marketContract.deployed();
+
+  const nftContract: MultiToken = await ethers.getContractAt(
+    "MultiToken",
+    await marketContract.nftContract()
+  );
+
+  const escrowContract: SponsorshipEscrow = await ethers.getContractAt(
+    "SponsorshipEscrow",
+    await marketContract.escrow()
+  );
+
   deployedContracts.set("Market", marketContract);
+  deployedContracts.set("MultiToken", nftContract);
+  deployedContracts.set("SponsorshipEscrow", escrowContract);
 };
 
 /**

@@ -1,0 +1,33 @@
+@import "../../../theme/assets/scss/blk-design-system-pro/custom/functions";
+@import "~bootstrap/scss/functions";
+@import "../../../theme/assets/scss/blk-design-system-pro/variables";
+
+.card-blog {
+  min-height: 500px !important;
+
+  .completion-bar {
+    display: flex !important;
+    align-items: center;
+
+    .progress {
+      width: 100%;
+    }
+  }
+
+  .card-image {
+    img {
+      object-fit: cover;
+      object-position: center;
+      cursor: pointer;
+    }
+  }
+
+  .card-title {
+    cursor: pointer;
+
+    .btn-link {
+      padding: 0;
+      font-size: $font-size-lg;
+    }
+  }
+}

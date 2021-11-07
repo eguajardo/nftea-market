@@ -1,4 +1,4 @@
-import { Card, Image } from "react-bootstrap";
+import { Button, Card, Image } from "react-bootstrap";
 import { NFTData } from "types/metadata";
 
 type Properties = NFTData & {
@@ -17,7 +17,9 @@ function NFTCard({ onSelect, ...nft }: Properties) {
       </div>
       <Card.Body>
         <Card.Title as="h4" onClick={handleSelect}>
-          {nft.name}
+          <Button className="btn-link" variant="info">
+            {nft.name}
+          </Button>
         </Card.Title>
         {nft.serial.isZero() && (
           <Card.Footer>

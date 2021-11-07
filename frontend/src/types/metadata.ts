@@ -15,3 +15,13 @@ export type NFTData = Metadata & {
   serial: BigNumber;
   stallName: string;
 };
+
+export type SponsorshipData = Omit<NFTData, "serial" | "class"> & {
+  sponsorshipId: BigNumber;
+  sponsorsShares: BigNumber;
+  requestedAmount: BigNumber;
+  deadline: BigNumber;
+  active: boolean;
+  sponsorsQuantity: BigNumber;
+  totalFunds: BigNumber;
+};

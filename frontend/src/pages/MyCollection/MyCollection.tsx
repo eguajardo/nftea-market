@@ -1,3 +1,4 @@
+import { parseLog } from "helpers/logs";
 import { useCallback, useEffect, useState } from "react";
 import { useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
@@ -20,19 +21,12 @@ function MyCollection() {
     }
 
     const filter = marketContract.filters.NFTPurchase(account);
-    console.log("filter", filter);
-
-    const logs = await library.getLogs({
-      ...filter,
-      fromBlock: 21063861,
-      toBlock: await library.getBlockNumber(),
-    });
-
-    console.log("logs", logs);
-    const loadedNFTs: BigNumber[] = [];
-    logs.forEach((log) => {
-      loadedNFTs.push(marketContract.interface.parseLog(log).args[3]);
-    });
+    const loadedNFTs: BigNumber[] = await parseLog<BigNumber>(
+      filter,
+      library,
+      marketContract.interface,
+      3
+    );
 
     setNFTIds(loadedNFTs);
   }, [account, library, marketContract]);

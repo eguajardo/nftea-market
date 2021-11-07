@@ -187,7 +187,7 @@ function NewSponsorship(props: {
 
     const blockNumber: number = await library!.getBlockNumber();
     let timestamp: number = (await library!.getBlock(blockNumber)).timestamp;
-    timestamp = timestamp + 86400 * 30; // Seven days from block
+    timestamp = timestamp + 86400 * 30; // 30 days from block
 
     sendRequestSponsorship(
       formFields.get("supply")!.value,
@@ -195,7 +195,7 @@ function NewSponsorship(props: {
       (formFields.get("price")!.value * 100).toFixed(0),
       (formFields.get("percent")!.value * 100).toFixed(0),
       uri,
-      formFields.get("amount")!.value,
+      (formFields.get("amount")!.value * 100).toFixed(0),
       timestamp
     );
   };
