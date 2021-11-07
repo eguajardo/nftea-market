@@ -15,11 +15,13 @@ function SponsorshipCard({ onSelect, ...sponsorship }: Properties) {
     sponsorship.deadline.mul(1000).toNumber() - new Date().getTime();
   const daysLeft = Math.floor(remaining / 1000 / 60 / 60 / 24); // convert miliseconds to days
 
-  const percent = Math.floor(
-    (sponsorship.totalFunds.toNumber() /
-      sponsorship.requestedAmount.toNumber()) *
-      100
-  );
+  const percent = sponsorship.requestedAmount.isZero()
+    ? 100
+    : Math.floor(
+        (sponsorship.totalFunds.toNumber() /
+          sponsorship.requestedAmount.toNumber()) *
+          100
+      );
 
   const handleSelect = () => {
     onSelect(sponsorship);

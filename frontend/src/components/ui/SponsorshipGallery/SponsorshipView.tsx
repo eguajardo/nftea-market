@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { useContractFunction, useEthers } from "@usedapp/core";
+import { useContractCall, useContractFunction, useEthers } from "@usedapp/core";
+import { useParams } from "react-router-dom";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
 import useFormAlert from "hooks/useFormAlert";
@@ -7,7 +8,7 @@ import useAuthorizationSignature from "hooks/useAuthorizationSignature";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 import { Button, Col, Row, Image, ProgressBar } from "react-bootstrap";
 import { SponsorshipData } from "types/metadata";
-import { SponsorshipEscrow } from "types/typechain";
+import { Market, SponsorshipEscrow } from "types/typechain";
 import { FormProcessingStatus, FormState } from "types/forms";
 import { BigNumber } from "ethers";
 import { Content } from "pages/Profile/Profile";
@@ -21,9 +22,14 @@ const classNames = require("classnames");
 
 type Properties = SponsorshipData & {
   setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
+  setIsFinalizing: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function SponsorshipView({ setContentDisplaying, ...sponsorship }: Properties) {
+function SponsorshipView({
+  setContentDisplaying,
+  setIsFinalizing,
+  ...sponsorship
+}: Properties) {
   const {
     formFields,
     createValueChangeHandler,
@@ -53,12 +59,25 @@ function SponsorshipView({ setContentDisplaying, ...sponsorship }: Properties) {
     ])
   );
 
+  const { stallId } = useParams<{ stallId: string }>();
   const [formState, setFormState] = useState<FormState>({});
   const { Alert, successAlertResult } = useFormAlert(formState);
 
+  const marketContract: Market = useContract<Market>("Market")!;
   const escrowContract: SponsorshipEscrow =
     useContract<SponsorshipEscrow>("SponsorshipEscrow")!;
   const { account, library } = useEthers();
+
+  const [vendorAddress] =
+    useContractCall(
+      marketContract &&
+        stallId && {
+          abi: marketContract.interface,
+          address: marketContract.address,
+          method: "stallVendor",
+          args: [stallId],
+        }
+    ) ?? [];
 
   const { state: depositState, send: sendDeposit } = useContractFunction(
     escrowContract,
@@ -71,11 +90,13 @@ function SponsorshipView({ setContentDisplaying, ...sponsorship }: Properties) {
     sponsorship.deadline.mul(1000).toNumber() - new Date().getTime();
   const daysLeft = Math.floor(remaining / 1000 / 60 / 60 / 24); // convert miliseconds to days
 
-  const percent = Math.floor(
-    (sponsorship.totalFunds.toNumber() /
-      sponsorship.requestedAmount.toNumber()) *
-      100
-  );
+  const percent = sponsorship.requestedAmount.isZero()
+    ? 100
+    : Math.floor(
+        (sponsorship.totalFunds.toNumber() /
+          sponsorship.requestedAmount.toNumber()) *
+          100
+      );
 
   const onSubmit = async () => {
     if (!account || !library) {
@@ -180,6 +201,10 @@ function SponsorshipView({ setContentDisplaying, ...sponsorship }: Properties) {
     waitSuccessAlertDismiss();
   }, [waitSuccessAlertDismiss]);
 
+  const onFulfillClick = () => {
+    setIsFinalizing(true);
+  };
+
   return (
     <div>
       <Row>
@@ -203,7 +228,15 @@ function SponsorshipView({ setContentDisplaying, ...sponsorship }: Properties) {
                 ${(sponsorship.totalFunds.toNumber() / 100).toFixed(2)}
               </span>
               of ${(sponsorship.requestedAmount.toNumber() / 100).toFixed(2)}{" "}
-              funded
+              funded{" "}
+              {vendorAddress === account && percent >= 100 && (
+                <Button
+                  className="btn-simple btn-warning"
+                  onClick={onFulfillClick}
+                >
+                  Fulfill and Claim
+                </Button>
+              )}
             </div>
             <div className="completion-bar">
               <ProgressBar

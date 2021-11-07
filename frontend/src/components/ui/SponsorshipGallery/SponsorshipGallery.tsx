@@ -11,6 +11,7 @@ import { Col, Row } from "react-bootstrap";
 import { Content } from "pages/Profile/Profile";
 
 import "./style.scss";
+import SponsorshipFinalizingForm from "./SponsorshipFinalizingForm";
 
 function SponsorshipGallery(props: {
   sponsorshipsIds: BigNumber[];
@@ -21,6 +22,7 @@ function SponsorshipGallery(props: {
 
   const [sponsorshipSelected, setSponsorshipSelected] =
     useState<SponsorshipData>();
+  const [isFinalizing, setIsFinalizing] = useState(false);
   const [sponsorships, setSponsorships] = useState<SponsorshipData[]>();
   const marketContract: Market = useContract("Market")!;
 
@@ -63,21 +65,31 @@ function SponsorshipGallery(props: {
     <div>
       {sponsorships && !sponsorshipSelected && (
         <Row>
-          {sponsorships.map((sponsorship) => {
-            return (
-              <Col md={6} sm={12} key={sponsorship.sponsorshipId.toString()}>
-                <SponsorshipCard
-                  {...sponsorship}
-                  onSelect={selectSponsorship}
-                />
-              </Col>
-            );
-          })}
+          {sponsorships
+            .filter((sponsorship) => sponsorship.active)
+            .map((sponsorship) => {
+              return (
+                <Col md={6} sm={12} key={sponsorship.sponsorshipId.toString()}>
+                  <SponsorshipCard
+                    {...sponsorship}
+                    onSelect={selectSponsorship}
+                  />
+                </Col>
+              );
+            })}
         </Row>
       )}
-      {sponsorshipSelected && (
+      {sponsorshipSelected && !isFinalizing && (
         <SponsorshipView
           setContentDisplaying={props.setContentDisplaying}
+          setIsFinalizing={setIsFinalizing}
+          {...sponsorshipSelected}
+        />
+      )}
+      {sponsorshipSelected && isFinalizing && (
+        <SponsorshipFinalizingForm
+          setContentDisplaying={props.setContentDisplaying}
+          setIsFinalizing={setIsFinalizing}
           {...sponsorshipSelected}
         />
       )}

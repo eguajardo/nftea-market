@@ -9,16 +9,23 @@ import useFormAlert from "hooks/useFormAlert";
 
 import { FormProcessingStatus, FormState } from "types/forms";
 import { Market } from "types/typechain";
-import { Content } from "./Profile";
+import { Content } from "pages/Profile/Profile";
+import { SponsorshipData } from "types/metadata";
 
 import FormGroup from "components/ui/FormGroup/FormGroup";
 import SubmitButton from "components/ui/SubmitButton";
 import { Col, Row } from "react-bootstrap";
 
-function NewNFT(props: {
+type Properties = SponsorshipData & {
   setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
-}) {
-  console.log("render NewNFT");
+  setIsFinalizing: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+function SponsorshipFinalizingForm({
+  setContentDisplaying,
+  setIsFinalizing,
+  ...sponsorship
+}: Properties) {
   const {
     formFields,
     createValueChangeHandler,
@@ -61,46 +68,6 @@ function NewNFT(props: {
         },
       ],
       [
-        "supply",
-        {
-          type: "number",
-          id: "supply",
-          label: "Copies",
-          step: 1,
-          value: 0,
-          placeholder: "Leave zero for unlimited",
-          validator: (field) => {
-            if (field.value < 0) {
-              return "Copies must not be negative!";
-            }
-            if (!Number.isInteger(parseInt(field.value))) {
-              return "Copies must be integer value!";
-            }
-
-            return null;
-          },
-        },
-      ],
-      [
-        "price",
-        {
-          type: "number",
-          id: "price",
-          label: "Price",
-          step: 0.01,
-          placeholder: parseFloat("10").toFixed(2),
-          prepend: "$",
-          append: "USD",
-          validator: (field) => {
-            if (!field.value || field.value <= 0) {
-              return "Price must not be zero!";
-            }
-
-            return null;
-          },
-        },
-      ],
-      [
         "image",
         {
           type: "file",
@@ -125,14 +92,14 @@ function NewNFT(props: {
 
   const { state: postNFTState, send: postNFTForSale } = useContractFunction(
     marketContract,
-    "postNFTForSale"
+    "postSponsoredNFTForSale"
   );
 
   const onSubmit = async () => {
     postNFTState.status = "None";
     setFormState({
       status: FormProcessingStatus.Processing,
-      statusTitle: "Creating NFT...",
+      statusTitle: "Creating sponsored NFT...",
     });
 
     const imageUri = await uploadFile(
@@ -145,12 +112,7 @@ function NewNFT(props: {
       image: imageUri,
     });
 
-    postNFTForSale(
-      uri,
-      formFields.get("supply")!.value,
-      // Convert to cents and remove decimals created by precision errors
-      (formFields.get("price")!.value * 100).toFixed(0)
-    );
+    postNFTForSale(sponsorship.sponsorshipId, uri);
   };
 
   const onSubmitError = async (err: any) => {
@@ -164,10 +126,10 @@ function NewNFT(props: {
     if (postNFTState && formState.status === FormProcessingStatus.Processing) {
       switch (postNFTState.status) {
         case "Success":
-          console.log("NFT created");
+          console.log("Sponsored NFT created");
           setFormState({
             status: FormProcessingStatus.Success,
-            statusMessage: "NFT created!",
+            statusMessage: "Sponsored NFT created!",
           });
           break;
         case "Exception":
@@ -188,9 +150,9 @@ function NewNFT(props: {
       successAlertResult
     ) {
       resetForm();
-      props.setContentDisplaying(Content.NFTs);
+      setContentDisplaying(Content.NFTs);
     }
-  }, [formState.status, successAlertResult, resetForm, props]);
+  }, [formState.status, successAlertResult, resetForm, setContentDisplaying]);
 
   useEffect(() => {
     waitSuccessAlertDismiss();
@@ -223,26 +185,15 @@ function NewNFT(props: {
               onBlur={createInputBlurHandler(formFields.get("description")!)}
               error={hasError(formFields.get("description")!)}
             />
-            <Row>
-              <Col>
-                <FormGroup
-                  key={formFields.get("supply")!.id}
-                  field={formFields.get("supply")!}
-                  onChange={createValueChangeHandler(formFields.get("supply")!)}
-                  onBlur={createInputBlurHandler(formFields.get("supply")!)}
-                  error={hasError(formFields.get("supply")!)}
-                />
-              </Col>
-              <Col>
-                <FormGroup
-                  key={formFields.get("price")!.id}
-                  field={formFields.get("price")!}
-                  onChange={createValueChangeHandler(formFields.get("price")!)}
-                  onBlur={createInputBlurHandler(formFields.get("price")!)}
-                  error={hasError(formFields.get("price")!)}
-                />
-              </Col>
-            </Row>
+            <div id="actions" className="mt-4">
+              <SubmitButton
+                formProcessing={
+                  formState.status === FormProcessingStatus.Processing
+                }
+              >
+                Fulfill
+              </SubmitButton>
+            </div>
           </Col>
           <Col md={3} xs={12}>
             <FormGroup
@@ -254,19 +205,9 @@ function NewNFT(props: {
             />
           </Col>
         </Row>
-
-        <div id="actions" className="mt-4">
-          <SubmitButton
-            formProcessing={
-              formState.status === FormProcessingStatus.Processing
-            }
-          >
-            Create
-          </SubmitButton>
-        </div>
       </form>
     </div>
   );
 }
 
-export default NewNFT;
+export default SponsorshipFinalizingForm;
