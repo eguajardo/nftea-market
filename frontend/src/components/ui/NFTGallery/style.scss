@@ -56,6 +56,10 @@
 }
 
 .nft-details {
+  .title {
+    margin-top: 0;
+  }
+
   .supply {
     line-height: 1.45em;
     color: $opacity-8;

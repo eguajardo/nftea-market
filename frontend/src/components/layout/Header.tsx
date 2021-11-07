@@ -67,7 +67,10 @@ function Header() {
                     size="sm"
                     variant="warning"
                   >
-                    <p>Connect</p>
+                    <p>
+                      Connect
+                      <i className="tim-icons icon-single-02 ml-2" />
+                    </p>
                   </Button>
                 )}
                 {account && !stallUri && (

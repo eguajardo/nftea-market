@@ -1,23 +1,60 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
+import { useFormFields } from "hooks/useFormFields";
 import useFormAlert from "hooks/useFormAlert";
 import useAuthorizationSignature from "hooks/useAuthorizationSignature";
 import { createSubmissionHandler } from "helpers/submissionHandler";
-import { Button, Col, Row, Image } from "react-bootstrap";
+import { Button, Col, Row, Image, ProgressBar } from "react-bootstrap";
 import { SponsorshipData } from "types/metadata";
 import { SponsorshipEscrow } from "types/typechain";
 import { FormProcessingStatus, FormState } from "types/forms";
 import { BigNumber } from "ethers";
+import { Content } from "pages/Profile/Profile";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCoins } from "@fortawesome/free-solid-svg-icons";
+import { faUserFriends } from "@fortawesome/free-solid-svg-icons";
+import FormGroup from "../FormGroup/FormGroup";
 
-const AMOUNT = 105; // 100.00 USD
+const classNames = require("classnames");
 
-function SponsorshipView(sponsorship: SponsorshipData) {
+type Properties = SponsorshipData & {
+  setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
+};
+
+function SponsorshipView({ setContentDisplaying, ...sponsorship }: Properties) {
+  const {
+    formFields,
+    createValueChangeHandler,
+    createInputBlurHandler,
+    validateForm,
+    hasError,
+  } = useFormFields(
+    new Map([
+      [
+        "amount",
+        {
+          type: "number",
+          id: "amount",
+          label: "Contribution amount",
+          step: 0.01,
+          prepend: "$",
+          append: "USD",
+          validator: (field) => {
+            if (!field.value || field.value <= 0) {
+              return "Amount must be greater than zero!";
+            }
+
+            return null;
+          },
+        },
+      ],
+    ])
+  );
+
   const [formState, setFormState] = useState<FormState>({});
-  const { Alert } = useFormAlert(formState);
+  const { Alert, successAlertResult } = useFormAlert(formState);
 
   const escrowContract: SponsorshipEscrow =
     useContract<SponsorshipEscrow>("SponsorshipEscrow")!;
@@ -30,6 +67,16 @@ function SponsorshipView(sponsorship: SponsorshipData) {
 
   const { signAuthorization, fiatToStablecoin } = useAuthorizationSignature();
 
+  const remaining =
+    sponsorship.deadline.mul(1000).toNumber() - new Date().getTime();
+  const daysLeft = Math.floor(remaining / 1000 / 60 / 60 / 24); // convert miliseconds to days
+
+  const percent = Math.floor(
+    (sponsorship.totalFunds.toNumber() /
+      sponsorship.requestedAmount.toNumber()) *
+      100
+  );
+
   const onSubmit = async () => {
     if (!account || !library) {
       Alert.fire({
@@ -40,6 +87,7 @@ function SponsorshipView(sponsorship: SponsorshipData) {
     }
 
     depositState.status = "None";
+    const amountCents = Math.round(formFields.get("amount")!.value * 100);
     Alert.fire({
       icon: "warning",
       title: "Signing...",
@@ -52,11 +100,11 @@ function SponsorshipView(sponsorship: SponsorshipData) {
           <div className="mt-4">
             Value{" "}
             <span className="text-primary">
-              ${(AMOUNT / 100).toFixed(2)} USD
+              ${(amountCents / 100).toFixed(2)} USD
             </span>{" "}
             should appear as{" "}
             <span className="text-warning">
-              {fiatToStablecoin(BigNumber.from(AMOUNT)).toString()}
+              {fiatToStablecoin(BigNumber.from(amountCents)).toString()}
             </span>{" "}
             in the signature request
           </div>
@@ -71,7 +119,7 @@ function SponsorshipView(sponsorship: SponsorshipData) {
     const { v, r, s, nonce, validBefore } = await signAuthorization(library, {
       from: account,
       to: escrowContract.address,
-      value: AMOUNT,
+      value: BigNumber.from(amountCents),
     });
 
     setFormState({
@@ -81,7 +129,7 @@ function SponsorshipView(sponsorship: SponsorshipData) {
 
     sendDeposit(
       sponsorship.sponsorshipId,
-      fiatToStablecoin(BigNumber.from(AMOUNT)),
+      fiatToStablecoin(BigNumber.from(amountCents)),
       nonce,
       validBefore,
       v,
@@ -119,37 +167,112 @@ function SponsorshipView(sponsorship: SponsorshipData) {
     }
   }, [depositState, formState.status]);
 
+  const waitSuccessAlertDismiss = useCallback(async () => {
+    if (
+      formState.status === FormProcessingStatus.Success &&
+      successAlertResult
+    ) {
+      setContentDisplaying(Content.About);
+    }
+  }, [formState.status, setContentDisplaying, successAlertResult]);
+
+  useEffect(() => {
+    waitSuccessAlertDismiss();
+  }, [waitSuccessAlertDismiss]);
+
   return (
     <div>
       <Row>
         <Col lg="6" md="12">
           <Image src={sponsorship.image} className="align-middle" />
         </Col>
-        <Col className="mx-auto nft-details" lg="6" md="12">
+        <Col className="mx-auto sponsorship-details" lg="6" md="12">
           <h2 className="title">{sponsorship.name}</h2>
-          <h2 className="main-price">
-            <div className="text-primary">
-              ${(sponsorship.price.toNumber() / 100).toFixed(2)} USD
+          <h2 className="main-info">
+            <div>
+              <span
+                className={classNames("mr-2", {
+                  "text-primary": sponsorship.totalFunds.gte(
+                    sponsorship.requestedAmount
+                  ),
+                  "text-warning": sponsorship.totalFunds.lt(
+                    sponsorship.requestedAmount
+                  ),
+                })}
+              >
+                ${(sponsorship.totalFunds.toNumber() / 100).toFixed(2)}
+              </span>
+              of ${(sponsorship.requestedAmount.toNumber() / 100).toFixed(2)}{" "}
+              funded
             </div>
-            <span className="mt-1 supply">
-              Max supply:{" "}
-              {sponsorship.maxSupply.isZero()
-                ? "unlimited"
-                : sponsorship.maxSupply.toString()}
-            </span>
+            <div className="completion-bar">
+              <ProgressBar
+                now={percent}
+                variant={percent >= 100 ? "primary" : "warning"}
+              />
+              <div className="ml-2">{percent}%</div>
+            </div>
+            <div className="subdetails mb-3">
+              <FontAwesomeIcon icon={faUserFriends} className="mr-2" />
+              {sponsorship.sponsorsQuantity.toString()} contributors
+              <i className="tim-icons icon-calendar-60 mr-2 ml-4" />
+              <span>{daysLeft} days left</span>
+            </div>
+            <div className="nft-details subdetails">
+              <div>
+                <span className="text-primary">
+                  <i className="tim-icons icon-money-coins mr-2" />$
+                  {(sponsorship.price.toNumber() / 100).toFixed(2)} USD
+                </span>{" "}
+                will be the cost of the target NFT
+              </div>
+              <div>
+                <span className="text-primary">
+                  <i className="tim-icons icon-chart-pie-36 mr-2" />%
+                  {(sponsorship.sponsorsShares.toNumber() / 100).toFixed(2)}
+                </span>{" "}
+                of sales will be divided proportionally among all sponsors
+              </div>
+              <div>
+                <span className="text-primary">
+                  <i className="tim-icons icon-single-copy-04 mr-2" />
+                  {sponsorship.maxSupply.isZero()
+                    ? "unlimited"
+                    : sponsorship.maxSupply.toNumber()}
+                </span>{" "}
+                number of copies will be available for sale
+              </div>
+            </div>
           </h2>
           <h5 className="category">Description</h5>
           <p className="description">{sponsorship.description}</p>
-          <Row className="justify-content-start mt-4">
-            <Button
-              className="ml-3"
-              color="warning"
-              onClick={createSubmissionHandler(onSubmit, onSubmitError)}
-            >
-              <FontAwesomeIcon icon={faCoins} className="mr-2" />
-              Send contribution
-            </Button>
-          </Row>
+          <form className="mt-4">
+            <Row className="justify-content-start mt-4 contribution-form">
+              <Col>
+                <FormGroup
+                  key={formFields.get("amount")!.id}
+                  field={formFields.get("amount")!}
+                  onChange={createValueChangeHandler(formFields.get("amount")!)}
+                  onBlur={createInputBlurHandler(formFields.get("amount")!)}
+                  error={hasError(formFields.get("amount")!)}
+                />
+              </Col>
+              <Col>
+                <Button
+                  className="ml-3 mb-3"
+                  color="warning"
+                  onClick={createSubmissionHandler(
+                    onSubmit,
+                    onSubmitError,
+                    validateForm
+                  )}
+                >
+                  <FontAwesomeIcon icon={faCoins} className="mr-2" />
+                  Send contribution
+                </Button>
+              </Col>
+            </Row>
+          </form>
         </Col>
       </Row>
     </div>

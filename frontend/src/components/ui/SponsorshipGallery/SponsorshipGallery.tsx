@@ -8,12 +8,14 @@ import { SponsorshipData } from "types/metadata";
 import SponsorshipCard from "./SponsorshipCard";
 import SponsorshipView from "./SponsorshipView";
 import { Col, Row } from "react-bootstrap";
+import { Content } from "pages/Profile/Profile";
 
 import "./style.scss";
 
 function SponsorshipGallery(props: {
   sponsorshipsIds: BigNumber[];
   stallId: string;
+  setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
 }) {
   console.log("render Sponsorships");
 
@@ -63,9 +65,8 @@ function SponsorshipGallery(props: {
         <Row>
           {sponsorships.map((sponsorship) => {
             return (
-              <Col md={6} sm={12}>
+              <Col md={6} sm={12} key={sponsorship.sponsorshipId.toString()}>
                 <SponsorshipCard
-                  key={sponsorship.sponsorshipId.toString()}
                   {...sponsorship}
                   onSelect={selectSponsorship}
                 />
@@ -74,7 +75,12 @@ function SponsorshipGallery(props: {
           })}
         </Row>
       )}
-      {sponsorshipSelected && <SponsorshipView {...sponsorshipSelected} />}
+      {sponsorshipSelected && (
+        <SponsorshipView
+          setContentDisplaying={props.setContentDisplaying}
+          {...sponsorshipSelected}
+        />
+      )}
     </div>
   );
 }

@@ -5,15 +5,6 @@
 .card-blog {
   min-height: 500px !important;
 
-  .completion-bar {
-    display: flex !important;
-    align-items: center;
-
-    .progress {
-      width: 100%;
-    }
-  }
-
   .card-image {
     img {
       object-fit: cover;
@@ -30,4 +21,34 @@
       font-size: $font-size-lg;
     }
   }
+}
+
+.sponsorship-details {
+  color: $opacity-8 !important;
+
+  .subdetails {
+    color: $opacity-8 !important;
+    font-size: medium;
+  }
+
+  .title {
+    margin-top: 0;
+  }
+
+  .description {
+    color: $opacity-8 !important;
+  }
+}
+
+.completion-bar {
+  display: flex !important;
+  align-items: center;
+
+  .progress {
+    width: 100%;
+  }
+}
+
+.contribution-form {
+  align-items: flex-end;
 }

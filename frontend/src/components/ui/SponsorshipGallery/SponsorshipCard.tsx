@@ -68,7 +68,6 @@ function SponsorshipCard({ onSelect, ...sponsorship }: Properties) {
             {sponsorship.sponsorsQuantity.toString()}
             <i className="tim-icons icon-calendar-60 mr-2 ml-4" />
             <span>{daysLeft} days left</span>
-            <span></span>
           </div>
         </Card.Footer>
       </Card.Body>

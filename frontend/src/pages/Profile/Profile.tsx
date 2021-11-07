@@ -224,6 +224,7 @@ function Profile() {
             <SponsorshipGallery
               sponsorshipsIds={sponsorshipsIds}
               stallId={stallId}
+              setContentDisplaying={setContentDisplaying}
             />
           )}
           {contentDisplaying === Content.NewNFT &&
