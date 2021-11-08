@@ -34,6 +34,7 @@ describe("Market contract", () => {
   const TEST_REQUESTED_AMOUNT: BigNumber = BigNumber.from("25201"); // 252.01 USD
   const TEST_DAYS_TO_DEADLINE: number = 10;
   const TEST_SPONSORSHIP_ID: BigNumber = ethers.constants.Zero;
+  const PLATFORM_COMISSION: number = 0.05;
 
   let marketContract: Market;
   let nftContract: MultiToken;
@@ -166,7 +167,6 @@ describe("Market contract", () => {
       "340282366920938463463374607431768211456"
     );
     const NFT_NEXT_SERIAL: number = 1;
-    const PLATFORM_COMISSION: number = 0.05;
 
     let authExpiration: number;
     let registeredStallPaymentSplitter: PaymentSplitter;
@@ -266,9 +266,19 @@ describe("Market contract", () => {
         .connect(buyer)
         .buyNFT(NFT_FOR_SALE, nonce, authExpiration, v, r, s);
 
-      expect(
-        await currencyContract.balanceOf(registeredStallPaymentSplitter.address)
-      ).to.equals(TEST_PRICE_STABLECOIN);
+      const vendorBalance: number = (
+        await currencyContract.balanceOf(vendor.address)
+      ).toNumber();
+      const marketBalance: number = (
+        await currencyContract.balanceOf(marketContract.address)
+      ).toNumber();
+
+      expect(vendorBalance).to.equals(
+        TEST_PRICE_STABLECOIN.toNumber() * (1 - PLATFORM_COMISSION)
+      );
+      expect(marketBalance).to.equals(
+        TEST_PRICE_STABLECOIN.toNumber() * PLATFORM_COMISSION
+      );
     });
 
     it("Should update buyer's currency balance", async () => {
@@ -296,40 +306,6 @@ describe("Market contract", () => {
           NFT_FOR_SALE_BASE_ID.add(NFT_NEXT_SERIAL)
         )
       ).to.equals(ethers.constants.One);
-    });
-
-    it("Should split funds after release", async () => {
-      const { v, r, s, nonce } = await testSignature();
-
-      await marketContract
-        .connect(buyer)
-        .buyNFT(NFT_FOR_SALE, nonce, authExpiration, v, r, s);
-
-      // Accessing function using braces because of typescript
-      // function overloading limitations
-      registeredStallPaymentSplitter["release(address,address)"](
-        currencyContract.address,
-        marketContract.address
-      );
-
-      registeredStallPaymentSplitter["release(address,address)"](
-        currencyContract.address,
-        vendor.address
-      );
-
-      const vendorBalance: number = (
-        await currencyContract.balanceOf(vendor.address)
-      ).toNumber();
-      const marketBalance: number = (
-        await currencyContract.balanceOf(marketContract.address)
-      ).toNumber();
-
-      expect(vendorBalance).to.equals(
-        TEST_PRICE_STABLECOIN.toNumber() * (1 - PLATFORM_COMISSION)
-      );
-      expect(marketBalance).to.equals(
-        TEST_PRICE_STABLECOIN.toNumber() * PLATFORM_COMISSION
-      );
     });
 
     it("Should fail due to inexistent NFT class", async () => {
@@ -753,6 +729,18 @@ describe("Market contract", () => {
       }
     });
 
+    it("Should emit SponsoredNFT event", async () => {
+      const REGISTERED_CLASS: number = 1;
+
+      await expect(
+        marketContract
+          .connect(vendor)
+          .postSponsoredNFTForSale(TEST_SPONSORSHIP_ID, TEST_URI_1)
+      )
+        .to.emit(marketContract, "SponsoredNFT")
+        .withArgs(REGISTERED_CLASS, TEST_SPONSORSHIP_ID);
+    });
+
     it("Should emit SponsorshipComplete event", async () => {
       await expect(
         marketContract
@@ -779,6 +767,26 @@ describe("Market contract", () => {
           REGISTERED_CLASS,
           TEST_SUPPLY_1
         );
+    });
+
+    it("Should release funds", async () => {
+      await marketContract
+        .connect(vendor)
+        .postSponsoredNFTForSale(TEST_SPONSORSHIP_ID, TEST_URI_1);
+
+      const vendorBalance: number = (
+        await currencyContract.balanceOf(vendor.address)
+      ).toNumber();
+      const marketBalance: number = (
+        await currencyContract.balanceOf(marketContract.address)
+      ).toNumber();
+
+      expect(vendorBalance).to.equals(
+        expectedTotalFunds.toNumber() * (1 - PLATFORM_COMISSION)
+      );
+      expect(marketBalance).to.equals(
+        expectedTotalFunds.toNumber() * PLATFORM_COMISSION
+      );
     });
 
     it("Should fail due to caller not registered vendor", async () => {

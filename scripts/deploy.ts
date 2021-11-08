@@ -115,6 +115,10 @@ const saveContractFiles = () => {
     console.log(key, "contract deployed at address:", value.address);
   });
 
+  newContracts[network.name]["PaymentSplitter"] = {
+    abi: artifacts.readArtifactSync("PaymentSplitter").abi,
+  };
+
   const content: string =
     "export const contracts: any = " +
     JSON.stringify(newContracts, null, 2) +

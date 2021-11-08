@@ -1,29 +1,98 @@
 import { useCallback, useEffect, useState } from "react";
-import { useContractFunction, useEthers } from "@usedapp/core";
+import { useContractCall, useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import useFormAlert from "hooks/useFormAlert";
+import { parseLog } from "helpers/logs";
+import { fiatToStablecoin, stablecoinToFiat } from "helpers/currency";
 import useAuthorizationSignature from "hooks/useAuthorizationSignature";
 import { Link, useHistory } from "react-router-dom";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 import { Button, Col, Row, Image } from "react-bootstrap";
+import { BigNumber } from "ethers";
 import { NFTData } from "types/metadata";
-import { Market } from "types/typechain";
+import { Market, PaymentSplitter, SponsorshipEscrow } from "types/typechain";
 import { FormProcessingStatus, FormState } from "types/forms";
 
 function NFTView(nft: NFTData) {
   const routerHistory = useHistory();
   const [formState, setFormState] = useState<FormState>({});
+  const [releaseState, setReleaseState] = useState<FormState>({});
+  const [contribution, setContribution] = useState<number>();
   const { Alert, successAlertResult } = useFormAlert(formState);
+  const { successAlertResult: successReleaseAlertResult } =
+    useFormAlert(releaseState);
 
   const marketContract: Market = useContract<Market>("Market")!;
+  const escrowContract: SponsorshipEscrow =
+    useContract<SponsorshipEscrow>("SponsorshipEscrow")!;
+
+  const [paymentAddress] =
+    useContractCall(
+      marketContract && {
+        abi: marketContract.interface,
+        address: marketContract.address,
+        method: "paymentAddress",
+        args: [nft.class],
+      }
+    ) ?? [];
+
+  const splitterContract: PaymentSplitter = useContract<PaymentSplitter>(
+    "PaymentSplitter",
+    paymentAddress
+  )!;
+
   const { account, library } = useEthers();
 
-  const { state: buyNFTState, send: sendBuyNFT } = useContractFunction(
+  const { state: buyNFTTxState, send: sendBuyNFT } = useContractFunction(
     marketContract,
     "buyNFT"
   );
 
-  const { signAuthorization, fiatToStablecoin } = useAuthorizationSignature();
+  const { state: releaseTxState, send: sendRelease } = useContractFunction(
+    splitterContract,
+    "release(address,address)"
+  );
+
+  const { signAuthorization, currencyContract } = useAuthorizationSignature();
+  console.log("contributions", contribution);
+  const loadContributions = useCallback(async () => {
+    if (!library || !marketContract || !escrowContract) {
+      return;
+    }
+
+    const sponsoredFilter = marketContract.filters.SponsoredNFT(nft.class);
+    const [sponsorshipId] = await parseLog<BigNumber>(
+      sponsoredFilter,
+      library,
+      marketContract.interface,
+      1
+    );
+
+    const depositsFilter = escrowContract.filters.Deposit(
+      sponsorshipId,
+      account
+    );
+    const deposits: BigNumber[] = await parseLog<BigNumber>(
+      depositsFilter,
+      library,
+      escrowContract.interface,
+      3
+    );
+
+    if (deposits.length !== 0) {
+      const totalDepositStablecoin = Math.max(
+        ...deposits.map((deposit) => deposit.toNumber())
+      );
+
+      setContribution(stablecoinToFiat(totalDepositStablecoin));
+    } else {
+      setContribution(0);
+    }
+  }, [account, escrowContract, library, marketContract, nft.class]);
+
+  useEffect(() => {
+    loadContributions();
+  }, [loadContributions]);
 
   const onSubmit = async () => {
     if (!account || !library) {
@@ -34,7 +103,7 @@ function NFTView(nft: NFTData) {
       return;
     }
 
-    buyNFTState.status = "None";
+    buyNFTTxState.status = "None";
     Alert.fire({
       icon: "warning",
       title: "Signing...",
@@ -62,7 +131,6 @@ function NFTView(nft: NFTData) {
       },
     });
 
-    console.log("library", library, library.getSigner());
     const { v, r, s, nonce, validBefore } = await signAuthorization(library, {
       from: account,
       to: await marketContract.paymentAddress(nft.class),
@@ -84,9 +152,34 @@ function NFTView(nft: NFTData) {
     });
   };
 
+  const onReleaseSubmit = async () => {
+    if (!account || !library) {
+      Alert.fire({
+        icon: "warning",
+        title: "Please connect your wallet first",
+      });
+      return;
+    }
+
+    releaseTxState.status = "None";
+    setReleaseState({
+      status: FormProcessingStatus.Processing,
+      statusTitle: "Claiming earnings...",
+    });
+
+    sendRelease(currencyContract.address, account);
+  };
+
+  const onReleaseSubmitError = async (err: any) => {
+    setReleaseState({
+      status: FormProcessingStatus.Error,
+      statusMessage: err.message,
+    });
+  };
+
   useEffect(() => {
-    if (buyNFTState && formState.status === FormProcessingStatus.Processing) {
-      switch (buyNFTState.status) {
+    if (buyNFTTxState && formState.status === FormProcessingStatus.Processing) {
+      switch (buyNFTTxState.status) {
         case "Success":
           console.log("NFT created");
           setFormState({
@@ -98,13 +191,38 @@ function NFTView(nft: NFTData) {
         case "Fail":
           setFormState({
             status: FormProcessingStatus.Error,
-            statusMessage: buyNFTState.errorMessage,
+            statusMessage: buyNFTTxState.errorMessage,
           });
-          console.error("Transaction Error:", buyNFTState.errorMessage);
+          console.error("Transaction Error:", buyNFTTxState.errorMessage);
           break;
       }
     }
-  }, [buyNFTState, formState.status]);
+  }, [buyNFTTxState, formState.status]);
+
+  useEffect(() => {
+    if (
+      releaseTxState &&
+      releaseState.status === FormProcessingStatus.Processing
+    ) {
+      switch (releaseTxState.status) {
+        case "Success":
+          console.log("Earnings claimed!");
+          setReleaseState({
+            status: FormProcessingStatus.Success,
+            statusMessage: "Earnings claimed!",
+          });
+          break;
+        case "Exception":
+        case "Fail":
+          setReleaseState({
+            status: FormProcessingStatus.Error,
+            statusMessage: releaseTxState.errorMessage,
+          });
+          console.error("Transaction Error:", releaseTxState.errorMessage);
+          break;
+      }
+    }
+  }, [releaseTxState, releaseState.status]);
 
   const waitSuccessAlertDismiss = useCallback(async () => {
     if (
@@ -118,6 +236,19 @@ function NFTView(nft: NFTData) {
   useEffect(() => {
     waitSuccessAlertDismiss();
   }, [waitSuccessAlertDismiss]);
+
+  const waitSuccessReleaseAlertDismiss = useCallback(async () => {
+    if (
+      releaseState.status === FormProcessingStatus.Success &&
+      successReleaseAlertResult
+    ) {
+      routerHistory.push("/sponsored");
+    }
+  }, [releaseState.status, routerHistory, successReleaseAlertResult]);
+
+  useEffect(() => {
+    waitSuccessReleaseAlertDismiss();
+  }, [waitSuccessReleaseAlertDismiss]);
 
   return (
     <div>
@@ -138,6 +269,21 @@ function NFTView(nft: NFTData) {
                   ? "unlimited"
                   : nft.maxSupply.toString()}
               </span>
+
+              {!!contribution && (
+                <div>
+                  <Button
+                    variant="success"
+                    className="btn-simple"
+                    onClick={createSubmissionHandler(
+                      onReleaseSubmit,
+                      onReleaseSubmitError
+                    )}
+                  >
+                    Claim sponsor earnings
+                  </Button>
+                </div>
+              )}
             </h2>
           )}
           {!nft.serial.isZero() && (

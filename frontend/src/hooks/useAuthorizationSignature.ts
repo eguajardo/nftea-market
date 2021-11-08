@@ -3,24 +3,13 @@ import { useEthers } from "@usedapp/core";
 import { useContract } from "./useContract";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { ERC20PresetFixedSupply } from "types/typechain";
-import { BigNumber, ethers } from "ethers";
-
-const STABLECOIN_DECIMALS: number = 6;
-const FIAT_DECIMALS: number = 2;
+import { ethers } from "ethers";
+import { fiatToStablecoin } from "helpers/currency";
 
 function useAuthorizationSignature() {
   const currencyContract: ERC20PresetFixedSupply =
     useContract<ERC20PresetFixedSupply>("ERC20PresetFixedSupply")!;
   const { chainId } = useEthers();
-
-  const fiatToStablecoin = (fiatAmount: BigNumber): BigNumber => {
-    const additionalDecimals = STABLECOIN_DECIMALS - FIAT_DECIMALS;
-    const stablecoinAmount = BigNumber.from(fiatAmount).mul(
-      BigNumber.from(10).pow(additionalDecimals)
-    );
-
-    return stablecoinAmount;
-  };
 
   const signAuthorization = useCallback(
     async (provider: JsonRpcProvider, value: any) => {
@@ -73,7 +62,7 @@ function useAuthorizationSignature() {
     [currencyContract, chainId]
   );
 
-  return { signAuthorization, fiatToStablecoin };
+  return { signAuthorization, currencyContract };
 }
 
 export default useAuthorizationSignature;

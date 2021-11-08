@@ -1,7 +1,8 @@
 import { useContractCall, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
-import { Button, Col, Container, Nav, Navbar, Row } from "react-bootstrap";
+import { Fragment } from "react";
 import { NavLink } from "react-router-dom";
+import { Button, Col, Container, Nav, Navbar, Row } from "react-bootstrap";
 import { Market } from "types/typechain";
 
 function Header() {
@@ -51,13 +52,24 @@ function Header() {
             </div>
             <Nav className="ml-auto" as="ul">
               <Nav.Item as="li">
-                <Nav.Link href="/">Explore</Nav.Link>
+                <NavLink className="nav-link" to="/">
+                  Explore
+                </NavLink>
               </Nav.Item>
-              <Nav.Item as="li">
-                {account && (
-                  <Nav.Link href="/collection">My collection</Nav.Link>
-                )}
-              </Nav.Item>
+              {account && (
+                <Fragment>
+                  <Nav.Item as="li">
+                    <NavLink className="nav-link" to="/collection">
+                      My collection
+                    </NavLink>
+                  </Nav.Item>
+                  <Nav.Item as="li">
+                    <NavLink className="nav-link" to="/sponsored">
+                      My sponsored NFTs
+                    </NavLink>
+                  </Nav.Item>
+                </Fragment>
+              )}
               <Nav.Item>
                 {!account && (
                   <Button

@@ -4,7 +4,8 @@ import { useEthers, getChainName } from "@usedapp/core";
 import { useMemo } from "react";
 
 export function useContract<T extends BaseContract>(
-  contractName: string
+  contractName: string,
+  contractAddress?: string
 ): T | null {
   const { chainId, library } = useEthers();
 
@@ -30,12 +31,20 @@ export function useContract<T extends BaseContract>(
       return null;
     }
 
+    const address = contractAddress
+      ? contractAddress
+      : contracts[chainName][contractName].address;
+
+    if (!address) {
+      return null;
+    }
+
     return new ethers.Contract(
-      contracts[chainName][contractName].address,
+      address,
       contracts[chainName][contractName].abi,
       library
     ) as T;
-  }, [chainId, library, contractName]);
+  }, [chainId, contractAddress, contractName, library]);
 
   return contract;
 }

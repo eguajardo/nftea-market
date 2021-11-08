@@ -174,6 +174,12 @@ contract Market is Context {
     );
 
     /**
+     * @notice Emitted when a NFT was created with class `class` as a result
+     * of a fulfilled sponsorship with ID `sponsorshipId`
+     */
+    event SponsoredNFT(uint128 indexed class, uint256 indexed sponsorshipId);
+
+    /**
      * @notice Initialize contract and the NFT token contract
      * @param stablecoin_ The stablecoin contract address used as currency
      * @param stablecoinDecimals_ Amount of decimals used by the stablecoin
@@ -307,13 +313,15 @@ contract Market is Context {
 
         stablecoin.transferWithAuthorization(
             _msgSender(), 
-            paymentAddress(class_), 
+            address(paymentAddress(class_)), 
             _fiatToStablecoin(_nftPrices[class_]), 
             0, 
             validBefore_,
             nonce_, 
             v_, r_, s_
         );
+        
+        _releaseSpliter(paymentAddress(class_), stallVendor(stallName));
 
         uint256 tokenId = nftContract.mint(_msgSender(), class_, _msgData());
 
@@ -417,6 +425,8 @@ contract Market is Context {
             uint256 totalFunds
         ) = escrow.completeSponsorship(sponsorshipId_);
 
+        _releaseSpliter(_stallPaymentSplitters[stallName], _msgSender());
+
         // To add platform and creator shares, a resized array is needed
         uint256 newSize = sponsors.length + 2;
 
@@ -439,25 +449,27 @@ contract Market is Context {
         }
 
         _nftPaymentSplitters[class] = new PaymentSplitter(payees, shares);
+
+        emit SponsoredNFT(class, sponsorshipId_);
     }
 
     /**
-     * @notice Returns the payment address to use when purchasing NFT `class_`
-     * @param class_ The NFT class associated with the payment address
-     * @return the address of the PaymentSplitter to use when purchasing
-     * this NFT `class_`. If the NFT was sponsored, then return the payment
-     * splitter address corresponding to the sponsorship, otherwise return
-     * the stall payment splitter
+     * @dev Returns the payment splitter to use when purchasing NFT `class_`
+     * @param class_ The NFT class associated with the payment splitter
+     * @return thethe PaymentSplitter to use when purchasing this NFT `class_`. 
+     * If the NFT was sponsored, then return the payment
+     * splitter corresponding to the sponsorship, otherwise return the stall 
+     * payment splitter
      */
-    function paymentAddress(uint128 class_) public view returns (address) {
+    function paymentAddress(uint128 class_) public view returns (PaymentSplitter) {
         require(bytes(_nftStalls[class_]).length > 0, "Market: unregistered NFT class");
 
-        address splitterAddress = address(_nftPaymentSplitters[class_]);
-        if (splitterAddress == address(0)) {
-            splitterAddress = address(_stallPaymentSplitters[_nftStalls[class_]]);
+        PaymentSplitter splitter = _nftPaymentSplitters[class_];
+        if (address(splitter) == address(0)) {
+            splitter = _stallPaymentSplitters[_nftStalls[class_]];
         }
 
-        return splitterAddress;
+        return splitter;
     }
 
     /**
@@ -552,7 +564,7 @@ contract Market is Context {
      * @param stallName_ Stall name to query for vendor
      * @return the stall owner's address
      */
-    function stallVendor(string calldata stallName_) public view returns (address) {
+    function stallVendor(string memory stallName_) public view returns (address) {
         require(stallNameTaken(stallName_), "Market: unregistered stall name");
 
         return _vendors[stallName_];
@@ -563,8 +575,18 @@ contract Market is Context {
      * @param stallName_ The stall name to check if taken
      * @return true if the `stallName_` is already registered, false otherwise
      */
-    function stallNameTaken(string calldata stallName_) public view returns (bool) {
+    function stallNameTaken(string memory stallName_) public view returns (bool) {
         return bytes(_uris[stallName_]).length > 0;
+    }
+
+    /**
+     * @dev Release the given payment splitter to vendor and this contract
+     * @param splitter_ The PaymentSplitter to release
+     * @param vendor_ The vendor who is a payee in the payment splitter
+     */
+    function _releaseSpliter(PaymentSplitter splitter_, address vendor_) internal {
+        splitter_.release(IERC20(stablecoin), vendor_);
+        splitter_.release(IERC20(stablecoin), address(this));
     }
 
     /**

@@ -6,6 +6,7 @@ import { useFormFields } from "hooks/useFormFields";
 import useFormAlert from "hooks/useFormAlert";
 import useAuthorizationSignature from "hooks/useAuthorizationSignature";
 import { createSubmissionHandler } from "helpers/submissionHandler";
+import { fiatToStablecoin } from "helpers/currency";
 import { Button, Col, Row, Image, ProgressBar } from "react-bootstrap";
 import { SponsorshipData } from "types/metadata";
 import { Market, SponsorshipEscrow } from "types/typechain";
@@ -84,7 +85,7 @@ function SponsorshipView({
     "deposit"
   );
 
-  const { signAuthorization, fiatToStablecoin } = useAuthorizationSignature();
+  const { signAuthorization } = useAuthorizationSignature();
 
   const remaining =
     sponsorship.deadline.mul(1000).toNumber() - new Date().getTime();
