@@ -267,6 +267,17 @@ contract Market is Context {
     }
 
     /**
+     * @notice Updates the metadata URI of the caller's stall
+     * @param uri_ The URI pointing to the stall metadata to update
+     */
+    function updateURI(string calldata uri_) external onlyVendor {
+        require(bytes(uri_).length > 0, "Market: empty metadata URI");
+        string memory stallName = vendorStallName(_msgSender());
+
+        _uris[stallName] = uri_;
+    }
+
+    /**
      * @notice Creates and posts a new NFT for sale
      * @param uri_ The NFT metadata's URI
      * @param supply_ Max supply for the NFT. Zero if the supply is unlimited

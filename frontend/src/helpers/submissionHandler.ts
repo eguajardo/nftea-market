@@ -2,6 +2,7 @@ export const createSubmissionHandler =
   (onSubmit: Function, onError: Function, validateForm?: Function) =>
   async (event: React.FormEvent) => {
     event.preventDefault();
+    event.stopPropagation();
 
     if (validateForm && !validateForm()) {
       return;

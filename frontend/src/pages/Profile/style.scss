@@ -24,7 +24,10 @@
 
 .profile-picture {
   width: 200px;
+  height: 200px;
   border: 2px solid $primary;
+  background-size: cover;
+  object-fit: cover;
 }
 
 .profile-page-content {

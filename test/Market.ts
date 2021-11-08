@@ -128,6 +128,28 @@ describe("Market contract", () => {
     });
   });
 
+  describe("updateURI", async () => {
+    it("Should update URI", async () => {
+      await marketContract.connect(vendor).updateURI(TEST_URI_2);
+
+      expect(await marketContract.uri(STALL_NAME_REGISTERED)).to.equals(
+        TEST_URI_2
+      );
+    });
+
+    it("Should fail due to not being a vendor", async () => {
+      await expect(marketContract.updateURI(TEST_URI_2)).to.be.revertedWith(
+        "Market: account is not a registered vendor"
+      );
+    });
+
+    it("Should fail due to using empty URI", async () => {
+      await expect(
+        marketContract.connect(vendor).updateURI("")
+      ).to.be.revertedWith("Market: empty metadata URI");
+    });
+  });
+
   describe("postNFTForSale", async () => {
     it("Should emit ClassRegistration when posting token for sale", async () => {
       const REGISTERED_CLASS: number = 1;

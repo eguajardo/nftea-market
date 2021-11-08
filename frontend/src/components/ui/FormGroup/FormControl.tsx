@@ -1,3 +1,4 @@
+import React from "react";
 import { useDropzone } from "react-dropzone";
 
 import { Fragment } from "react";
@@ -5,7 +6,6 @@ import { Form } from "react-bootstrap";
 import { FormGroupInterface } from "types/forms";
 
 import "./style.scss";
-import React from "react";
 
 const classNames = require("classnames");
 
