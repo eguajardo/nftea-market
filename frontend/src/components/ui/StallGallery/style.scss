@@ -1,0 +1,29 @@
+@import "../../../theme/assets/scss/blk-design-system-pro/custom/functions";
+@import "~bootstrap/scss/functions";
+@import "../../../theme/assets/scss/blk-design-system-pro/variables";
+
+.card-profile {
+  display: inline-block !important;
+
+  .card-header {
+    cursor: pointer;
+  }
+
+  .card-avatar {
+    cursor: pointer;
+
+    img {
+      width: 130px;
+      height: 130px;
+    }
+  }
+
+  .card-title {
+    cursor: pointer;
+
+    .btn-link {
+      padding: 0;
+      font-size: $font-size-lg;
+    }
+  }
+}

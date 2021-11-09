@@ -1,5 +1,5 @@
 import { getJSONMetadata } from "helpers/ipfs";
-import { parseLog } from "helpers/logs";
+import { parseLogValue } from "helpers/logs";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useContractCall, useContractCalls, useEthers } from "@usedapp/core";
@@ -106,7 +106,7 @@ function Profile() {
     }
 
     const filter = marketContract.filters.Sponsorship(null, stallId);
-    const loadedSponsorshipIDs: BigNumber[] = await parseLog<BigNumber>(
+    const loadedSponsorshipIDs: BigNumber[] = await parseLogValue<BigNumber>(
       filter,
       library,
       marketContract.interface,

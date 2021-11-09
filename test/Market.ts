@@ -98,7 +98,12 @@ describe("Market contract", () => {
       );
       await expect(tx)
         .to.be.emit(marketContract, "StallRegistration")
-        .withArgs(defaultSigner.address, STALL_NAME_UNREGISTERED, TEST_URI_2);
+        .withArgs(
+          defaultSigner.address,
+          STALL_NAME_UNREGISTERED,
+          TEST_URI_2,
+          STALL_NAME_UNREGISTERED
+        );
     });
 
     it("Should fail due to empty stall name", async () => {

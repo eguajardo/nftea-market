@@ -1,4 +1,4 @@
-import { parseLog } from "helpers/logs";
+import { parseLogValue } from "helpers/logs";
 import { useCallback, useEffect, useState } from "react";
 import { useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
@@ -21,7 +21,7 @@ function MyCollection() {
     }
 
     const filter = marketContract.filters.NFTPurchase(account);
-    const loadedNFTs: BigNumber[] = await parseLog<BigNumber>(
+    const loadedNFTs: BigNumber[] = await parseLogValue<BigNumber>(
       filter,
       library,
       marketContract.interface,

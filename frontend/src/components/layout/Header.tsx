@@ -1,7 +1,7 @@
 import { useContractCall, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { Fragment } from "react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { Button, Col, Container, Nav, Navbar, Row } from "react-bootstrap";
 import { Market } from "types/typechain";
 
@@ -31,7 +31,9 @@ function Header() {
     <div>
       <Navbar bg="default" expand="lg" variant="dark">
         <Container>
-          <Navbar.Brand href="/">NFTea•Market</Navbar.Brand>
+          <Link className="navbar-brand" to="/">
+            NFTea•Market
+          </Link>
           <Navbar.Toggle aria-controls="navigation">
             <span className="navbar-toggler-bar bar1" />
             <span className="navbar-toggler-bar bar2" />
@@ -41,7 +43,7 @@ function Header() {
             <div className="navbar-collapse-header">
               <Row>
                 <Col className="collapse-brand" xs="6">
-                  <a href="/">NFTea•Market</a>
+                  <Link to="/">NFTea•Market</Link>
                 </Col>
                 <Col className="collapse-close text-right" xs="6">
                   <Navbar.Toggle aria-controls="navigation">
@@ -80,8 +82,8 @@ function Header() {
                     variant="warning"
                   >
                     <p>
+                      <i className="tim-icons icon-single-02 mr-2" />
                       Connect
-                      <i className="tim-icons icon-single-02 ml-2" />
                     </p>
                   </Button>
                 )}

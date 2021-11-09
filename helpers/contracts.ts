@@ -1,7 +1,7 @@
 export const contracts: any = {
   "localhost": {
     "ERC20PresetFixedSupply": {
-      "address": "0x1282694b45eDB9183AaBFF771581E1dc3cBA62d7",
+      "address": "0xd437049588b46c0447174b6fF0ce45A762Df9Ba6",
       "abi": [
         {
           "inputs": [
@@ -571,7 +571,7 @@ export const contracts: any = {
       ]
     },
     "Market": {
-      "address": "0xFDb00A737b432D678D664680A88Cd89e6B8687C4",
+      "address": "0xceADAA2009F9ce8cE83CC27b3EeA752ff2f2DF93",
       "abi": [
         {
           "inputs": [
@@ -749,13 +749,19 @@ export const contracts: any = {
             {
               "indexed": true,
               "internalType": "string",
-              "name": "stallName",
+              "name": "hashedStallName",
               "type": "string"
             },
             {
               "indexed": true,
               "internalType": "string",
-              "name": "uri",
+              "name": "hashedUri",
+              "type": "string"
+            },
+            {
+              "indexed": false,
+              "internalType": "string",
+              "name": "stallName",
               "type": "string"
             }
           ],
@@ -1275,7 +1281,7 @@ export const contracts: any = {
       ]
     },
     "MultiToken": {
-      "address": "0x253ADB126a832Cf0C5AB5a23Ecc632052dc4ECB0",
+      "address": "0x0cfAd040CC6c4616bE18677083BAF1788B581282",
       "abi": [
         {
           "inputs": [
@@ -2175,7 +2181,7 @@ export const contracts: any = {
       ]
     },
     "SponsorshipEscrow": {
-      "address": "0x426372a6aEA24dccB0F63FB938dce292B11E6843",
+      "address": "0x4704657076cE88947Fd891A4aa4385eBd7a366a8",
       "abi": [
         {
           "inputs": [

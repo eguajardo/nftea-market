@@ -143,7 +143,7 @@ contract Market is Context {
      * @notice Emitted when the sender `vendor` registers a stall with the
      * name `stallName` and metadata URI `uri`
      */
-    event StallRegistration(address indexed vendor, string indexed stallName, string indexed uri);
+    event StallRegistration(address indexed vendor, string indexed hashedStallName, string indexed hashedUri, string stallName);
 
     /**
      * @notice Emitted when a NFT is posted for sale by `vendor` address
@@ -263,7 +263,7 @@ contract Market is Context {
 
         _stallPaymentSplitters[stallName_] = new PaymentSplitter(payees, shares);
 
-        emit StallRegistration(_msgSender(), stallName_, uri_);
+        emit StallRegistration(_msgSender(), stallName_, uri_, stallName_);
     }
 
     /**

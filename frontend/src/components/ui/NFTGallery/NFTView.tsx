@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useContractCall, useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import useFormAlert from "hooks/useFormAlert";
-import { parseLog } from "helpers/logs";
+import { parseLogValue } from "helpers/logs";
 import { fiatToStablecoin, stablecoinToFiat } from "helpers/currency";
 import useAuthorizationSignature from "hooks/useAuthorizationSignature";
 import { Link, useHistory } from "react-router-dom";
@@ -61,7 +61,7 @@ function NFTView(nft: NFTData) {
     }
 
     const sponsoredFilter = marketContract.filters.SponsoredNFT(nft.class);
-    const [sponsorshipId] = await parseLog<BigNumber>(
+    const [sponsorshipId] = await parseLogValue<BigNumber>(
       sponsoredFilter,
       library,
       marketContract.interface,
@@ -72,7 +72,7 @@ function NFTView(nft: NFTData) {
       sponsorshipId,
       account
     );
-    const deposits: BigNumber[] = await parseLog<BigNumber>(
+    const deposits: BigNumber[] = await parseLogValue<BigNumber>(
       depositsFilter,
       library,
       escrowContract.interface,

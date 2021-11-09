@@ -7,6 +7,11 @@ export type Metadata = {
   headerImage?: string;
 };
 
+export type StallData = Metadata & {
+  uri: string;
+  stallId: string;
+};
+
 export type NFTData = Metadata & {
   uri: string;
   maxSupply: BigNumber;

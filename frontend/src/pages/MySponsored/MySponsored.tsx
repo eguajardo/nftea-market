@@ -1,4 +1,4 @@
-import { parseLog } from "helpers/logs";
+import { parseLogValue } from "helpers/logs";
 import { useCallback, useEffect, useState } from "react";
 import { useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
@@ -23,7 +23,7 @@ function MySponsored() {
     }
 
     const depositsFilter = escrowContract.filters.Deposit(null, account);
-    const sponsorshipsIds: BigNumber[] = await parseLog<BigNumber>(
+    const sponsorshipsIds: BigNumber[] = await parseLogValue<BigNumber>(
       depositsFilter,
       library,
       escrowContract.interface,
@@ -33,7 +33,7 @@ function MySponsored() {
     const loadedNFTs: BigNumber[] = [];
     for (const id of sponsorshipsIds) {
       const filter = marketContract.filters.SponsoredNFT(null, id);
-      const [sponsorshipClass] = await parseLog<BigNumber>(
+      const [sponsorshipClass] = await parseLogValue<BigNumber>(
         filter,
         library,
         marketContract.interface,
