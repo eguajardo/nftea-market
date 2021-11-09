@@ -5,6 +5,7 @@ import { contracts } from "../helpers/contracts";
 import {
   ERC20PresetFixedSupply,
   ERC20PresetFixedSupply__factory,
+  Market,
   Market__factory,
   MultiToken,
   SponsorshipEscrow,
@@ -15,7 +16,31 @@ const NETWORKS_TESTNETS: Array<string> = [...NETWORKS_LOCAL, "mumbai"];
 const ERC20_CURRENCY_DECIMALS: number = 6;
 const CONTRACTS_FILENAME: string = "contracts.ts";
 
+const TEST_DATA = [
+  {
+    stallName: "wetPaint",
+    uri: "ipfs://bafybeieemnwlw2nfbkxgvzmjvx33ewrtoubacffirphvzxcfchkfaki3sy/metadata.json",
+  },
+  {
+    stallName: "janeLens",
+    uri: "ipfs://bafybeiftbav4teauchrgox3rqqsba7hrdb7x5zvt2pfpwuc3lnxbz2gnvy/metadata.json",
+  },
+  {
+    stallName: "johnsMusic",
+    uri: "ipfs://bafybeibktu326ga3jgm4tkohz4y7itnhedsuyh3573v5coqmztx7rpuuie/metadata.json",
+  },
+];
+
 const deployedContracts: Map<string, Contract> = new Map();
+
+const asyncForEach = async <T>(
+  array: Array<T>,
+  callback: (item: T, index: number) => Promise<void>
+) => {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index);
+  }
+};
 
 const main = async () => {
   console.log("Deploying to network:", network.name);
@@ -27,6 +52,10 @@ const main = async () => {
     deployedContracts.get("ERC20PresetFixedSupply")!.address
   );
 
+  if (NETWORKS_TESTNETS.includes(network.name)) {
+    await createTestData();
+  }
+
   saveContractFiles();
   copyTypingsToFrontend();
 };
@@ -35,7 +64,7 @@ const deployMarketContract = async (currencyContractAddress: string) => {
   const marketFactory: Market__factory = await ethers.getContractFactory(
     "Market"
   );
-  const marketContract = await marketFactory.deploy(
+  const marketContract: Market = await marketFactory.deploy(
     currencyContractAddress,
     ERC20_CURRENCY_DECIMALS
   );
@@ -63,7 +92,7 @@ const deployTestCurrency = async () => {
   const TEST_CURRENCY_NAME: string = "Test USD Coin";
   const TEST_CURRENCY_SYMBOL: string = "TestUSDC";
   const CURRENCY_SUPPLY: BigNumber = BigNumber.from("1000000000000"); // 1,000,000 USDC
-  const ACCOUNT_BALANCE: BigNumber = BigNumber.from("200000000"); // 200 USDC
+  const ACCOUNT_BALANCE: BigNumber = BigNumber.from("1000000000"); // 1000 USDC
 
   const currencyFactory: ERC20PresetFixedSupply__factory =
     await ethers.getContractFactory("ERC20PresetFixedSupply");
@@ -88,6 +117,18 @@ const deployTestCurrency = async () => {
       .connect(owner)
       .transfer(signers[i].address, ACCOUNT_BALANCE);
   }
+};
+
+const createTestData = async () => {
+  const marketContract = deployedContracts.get("Market") as Market;
+
+  const signers = await ethers.getSigners();
+
+  await asyncForEach(TEST_DATA, async (data, index) => {
+    await marketContract
+      .connect(signers[signers.length - 1 - index])
+      .registerStall(data.stallName, data.uri);
+  });
 };
 
 const saveContractFiles = () => {

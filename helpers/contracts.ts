@@ -1,7 +1,7 @@
 export const contracts: any = {
   "localhost": {
     "ERC20PresetFixedSupply": {
-      "address": "0x2aa13CF50C8EB5Ea05cb095Be616B533CE8A782b",
+      "address": "0x1282694b45eDB9183AaBFF771581E1dc3cBA62d7",
       "abi": [
         {
           "inputs": [
@@ -571,7 +571,7 @@ export const contracts: any = {
       ]
     },
     "Market": {
-      "address": "0x920Bedce7B6C6a54AC927C5468d0259B040300E5",
+      "address": "0xFDb00A737b432D678D664680A88Cd89e6B8687C4",
       "abi": [
         {
           "inputs": [
@@ -1275,7 +1275,7 @@ export const contracts: any = {
       ]
     },
     "MultiToken": {
-      "address": "0x118e8C6D37fDa5bE042EE28E1441FFb92BD074C4",
+      "address": "0x253ADB126a832Cf0C5AB5a23Ecc632052dc4ECB0",
       "abi": [
         {
           "inputs": [
@@ -2175,7 +2175,7 @@ export const contracts: any = {
       ]
     },
     "SponsorshipEscrow": {
-      "address": "0x0dC91E488423CA1CE34E38b8F6c96ce74717D6C3",
+      "address": "0x426372a6aEA24dccB0F63FB938dce292B11E6843",
       "abi": [
         {
           "inputs": [
