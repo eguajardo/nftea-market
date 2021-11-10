@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Button, Card, Image } from "react-bootstrap";
 import { NFTData } from "types/metadata";
 
@@ -9,6 +10,8 @@ function NFTCard({ onSelect, ...nft }: Properties) {
   const handleSelect = () => {
     onSelect(nft);
   };
+
+  console.log("SERIAL", nft.serial.toString());
 
   return (
     <Card className="card-product">
@@ -22,20 +25,28 @@ function NFTCard({ onSelect, ...nft }: Properties) {
           </Button>
         </Card.Title>
         {nft.serial.isZero() && (
-          <Card.Footer>
-            <div className="price-container">
-              <span className="price">
-                ${(nft.price.toNumber() / 100).toFixed(2)} USD
-              </span>
-            </div>
-            <div>
-              <span className="supply">
-                {nft.maxSupply.isZero()
-                  ? "unlimited"
-                  : `Supply: ${nft.maxSupply.toString()}`}
-              </span>
-            </div>
-          </Card.Footer>
+          <Fragment>
+            <Card.Footer>
+              <div className="price-container">
+                <i className="tim-icons icon-money-coins mr-2" />
+                <span className="price">
+                  ${(nft.price.toNumber() / 100).toFixed(2)} USD
+                </span>
+              </div>
+            </Card.Footer>
+            <Card.Footer>
+              <div>
+                <i className="tim-icons icon-single-copy-04 mr-2" />
+                <span className="mr-2">{nft.totalSerialized.toString()}</span>
+                <span className="mr-2">sold out of</span>
+                <span className="supply">
+                  {nft.maxSupply.isZero()
+                    ? "unlimited"
+                    : nft.maxSupply.toString()}
+                </span>
+              </div>
+            </Card.Footer>
+          </Fragment>
         )}
         {!nft.serial.isZero() && (
           <Card.Footer>

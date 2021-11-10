@@ -55,6 +55,7 @@ contract Market is Context {
         uint256 price;
         uint128 class;
         uint128 serial;
+        uint128 totalSerialized;
         string stallName;
     }
 
@@ -514,6 +515,7 @@ contract Market is Context {
             price: _nftPrices[class],
             class: class,
             serial: nftContract.tokenSerialNumber(id_),
+            totalSerialized: nftContract.totalSerialized(class),
             stallName: stallName
         });
     }

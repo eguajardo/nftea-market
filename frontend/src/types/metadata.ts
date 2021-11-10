@@ -18,6 +18,7 @@ export type NFTData = Metadata & {
   price: BigNumber;
   class: BigNumber;
   serial: BigNumber;
+  totalSerialized: BigNumber;
   stallName: string;
 };
 
