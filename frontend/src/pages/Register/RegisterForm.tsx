@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { useContractFunction } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
@@ -15,6 +15,7 @@ import { FormProcessingStatus, FormState } from "types/forms";
 
 function RegisterForm() {
   console.log("render RegisterForm");
+  const { stallId } = useParams<{ stallId: string }>();
   const {
     formFields,
     createValueChangeHandler,
@@ -29,6 +30,7 @@ function RegisterForm() {
           type: "text",
           id: "username",
           label: "ID for your market stall page",
+          value: stallId ? stallId : undefined,
           placeholder: "johnDoe",
           prepend: "https://nftea.market.com/",
           validator: (field): string | null => {

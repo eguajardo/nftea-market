@@ -54,7 +54,7 @@ function Header() {
             </div>
             <Nav className="ml-auto" as="ul">
               <Nav.Item as="li">
-                <NavLink className="nav-link" to="/">
+                <NavLink className="nav-link" to="/explore">
                   Explore
                 </NavLink>
               </Nav.Item>

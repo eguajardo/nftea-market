@@ -1,3 +1,4 @@
+import { useEthers } from "@usedapp/core";
 import {
   ReactElement,
   JSXElementConstructor,
@@ -20,11 +21,30 @@ function SubmitButton(props: {
     | null
     | undefined;
 }) {
+  const { activateBrowserWallet, account } = useEthers();
+
+  const connect = () => {
+    activateBrowserWallet();
+  };
+
   return (
-    <Button type="submit" variant="primary" disabled={props.formProcessing}>
-      {!props.formProcessing && props.children}
-      {props.formProcessing && <LoadingAnimation />}
-    </Button>
+    <div>
+      {account && (
+        <Button type="submit" variant="primary" disabled={props.formProcessing}>
+          {!props.formProcessing && props.children}
+          {props.formProcessing && <LoadingAnimation />}
+        </Button>
+      )}
+      {!account && (
+        <Button
+          variant="primary"
+          disabled={props.formProcessing}
+          onClick={connect}
+        >
+          Connect first
+        </Button>
+      )}
+    </div>
   );
 }
 

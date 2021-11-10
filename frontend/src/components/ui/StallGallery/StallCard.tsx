@@ -1,6 +1,9 @@
 import { Button, Card, Image } from "react-bootstrap";
 import { StallData } from "types/metadata";
 
+import placeholderHeaderImage from "assets/img/image_placeholder.jpg";
+import placeholderProfileImage from "assets/img/placeholder.jpg";
+
 type Properties = StallData & {
   onSelect: Function;
 };
@@ -17,12 +20,18 @@ function StallCard({ onSelect, ...stall }: Properties) {
     onSelect(stall);
   };
 
+  const headerImage = stall.headerImage
+    ? stall.headerImage
+    : placeholderHeaderImage;
+
+  const profileImage = stall.image ? stall.image : placeholderProfileImage;
+
   return (
     <Card className="card-profile profile-bg">
       <Card.Header
         onClick={handleSelect}
         style={{
-          backgroundImage: `url(${stall.headerImage})`,
+          backgroundImage: `url(${headerImage})`,
         }}
       >
         <div className="card-avatar">
@@ -30,7 +39,7 @@ function StallCard({ onSelect, ...stall }: Properties) {
             alt=""
             onClick={handleSelect}
             className="img img-raised"
-            src={stall.image}
+            src={profileImage}
           />
         </div>
       </Card.Header>
