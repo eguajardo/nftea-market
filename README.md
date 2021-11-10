@@ -75,3 +75,5 @@ yarn start
 ---
 
 > Project built using [BLK• Design System PRO React](https://www.creative-tim.com/product/blk-design-system-pro-react) theme from Creative Tim.
+
+> Additional stock images were downloaded for free from https://unsplash.com/

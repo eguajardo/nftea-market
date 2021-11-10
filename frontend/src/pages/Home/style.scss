@@ -2,3 +2,22 @@
   width: 100% !important;
   font-size: 2rem !important;
 }
+
+.awesome-features {
+  .path {
+    right: auto;
+    left: 50px;
+    max-width: 45%;
+    top: 60px;
+  }
+
+  .icon .svg-inline--fa {
+    width: 2rem !important;
+    font-size: 2rem !important;
+  }
+}
+
+.features-explore {
+  margin-top: 5rem;
+  margin-bottom: 5rem;
+}

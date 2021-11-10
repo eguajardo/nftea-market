@@ -1,19 +1,31 @@
+import { useCallback, useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
+import { useEthers } from "@usedapp/core";
 import { useFormFields } from "hooks/useFormFields";
+import { useContract } from "hooks/useContract";
+import { parseLogValue } from "helpers/logs";
+
+import { Market } from "types/typechain";
 
 import { Button, Col, Container, Row, Image } from "react-bootstrap";
 import FormGroup from "components/ui/FormGroup/FormGroup";
+import StallGallery from "components/ui/StallGallery/StallGallery";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTree } from "@fortawesome/free-solid-svg-icons";
 import { faBolt } from "@fortawesome/free-solid-svg-icons";
 import { faPiggyBank } from "@fortawesome/free-solid-svg-icons";
+import { faFingerprint } from "@fortawesome/free-solid-svg-icons";
+import { faDollarSign } from "@fortawesome/free-solid-svg-icons";
+import { faHandHoldingUsd } from "@fortawesome/free-solid-svg-icons";
 
 import headerImage from "assets/img/lisheng-chang-M2524ncJQ40-unsplash.jpg";
 import shapeSImage from "theme/assets/img/shape-s.png";
 import poweredByImage from "assets/img/powered-by-polygon.png";
 import path2Image from "theme/assets/img/path2.png";
+import path5Image from "theme/assets/img/path5.png";
 import environmentImage from "assets/img/markus-spiske-GnxktpZHjcM-unsplash.jpg";
+import sponsorshipDemo from "assets/img/sponsorship-demo.png";
 
 import "./style.scss";
 
@@ -43,6 +55,31 @@ function Home() {
 
   const routerHistory = useHistory();
 
+  const { library } = useEthers();
+  const marketContract: Market = useContract<Market>("Market")!;
+  const [stallIds, setStallsIds] = useState<string[]>([]);
+
+  const loadStalls = useCallback(async () => {
+    if (!library || !marketContract) {
+      return;
+    }
+
+    const stallsFilter = marketContract.filters.StallRegistration();
+    const loadedStalls = await parseLogValue<string>(
+      stallsFilter,
+      library,
+      marketContract.interface,
+      3
+    );
+
+    const startPosition = loadedStalls.length > 3 ? loadedStalls.length - 3 : 0;
+    setStallsIds(loadedStalls.slice(startPosition));
+  }, [library, marketContract]);
+
+  useEffect(() => {
+    loadStalls();
+  }, [loadStalls]);
+
   const getStarted = () => {
     const path = formFields.get("username")?.value
       ? `/register/${formFields.get("username")!.value}`
@@ -66,8 +103,10 @@ function Home() {
                 <p className="description">
                   Open a digital stall in the NFTea Market and allow your fans
                   to collect and sponsor your work. Instead of receiving coffee
-                  donations, offer your fans a cup of NFTea and start financing
-                  your passion!
+                  donations, offer your fans a cup of NFTea and{" "}
+                  <span className="font-weight-bold">
+                    start financing your passion!
+                  </span>
                 </p>
                 <form onSubmit={getStarted}>
                   <Row className="row-input">
@@ -162,6 +201,113 @@ function Home() {
           </Container>
         </div>
       </div>
+      <section className="section section-lg section-safe awesome-features">
+        <img alt="" className="path" src={path5Image} />
+        <Container>
+          <Row className="row-grid justify-content-between">
+            <Col md="6">
+              <img
+                alt=""
+                className="img-fluid floating"
+                src={sponsorshipDemo}
+              />
+            </Col>
+            <Col md="6">
+              <div className="px-md-5">
+                <hr className="line-success" />
+                <h3>Awesome features</h3>
+                <p>
+                  You can make as many NFT copies as you want out of whatever
+                  work you have already done, or engage with your fans by
+                  requesting a sponsorship to finance your project and reward
+                  them with sale comissions of a selected NFT
+                </p>
+                <ul className="list-unstyled mt-5">
+                  <li className="py-2">
+                    <div className="d-flex">
+                      <div className="icon icon-success mb-2">
+                        <FontAwesomeIcon icon={faDollarSign} className="mr-2" />
+                      </div>
+                      <div className="ml-3">
+                        <h3>Payments using a USD stablecoin</h3>
+                      </div>
+                    </div>
+                  </li>
+                  <li className="py-2">
+                    <div className="d-flex">
+                      <div className="icon icon-success mb-2">
+                        <FontAwesomeIcon
+                          icon={faHandHoldingUsd}
+                          className="mr-2"
+                        />
+                      </div>
+                      <div className="ml-3">
+                        <h3>Reward your sponsors with sale comissions</h3>
+                      </div>
+                    </div>
+                  </li>
+                  <li className="py-2">
+                    <div className="d-flex">
+                      <div className="icon icon-success mb-2">
+                        <FontAwesomeIcon
+                          icon={faFingerprint}
+                          className="mr-2"
+                        />
+                      </div>
+                      <div className="ml-3">
+                        <h3>
+                          Each NFT, whether a copy or not, has a serial number
+                        </h3>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+      <section className="features-explore">
+        <Container>
+          <Row className="text-center mb-2">
+            <Col className="ml-auto mr-auto" md="8">
+              <h2>
+                Explore the market stalls already paving the{" "}
+                <span className="text-warning">future of digital content</span>
+              </h2>
+            </Col>
+          </Row>
+          {stallIds && <StallGallery stallIds={stallIds} />}
+          <Row className="text-center mt-5">
+            <Col className="ml-auto mr-auto" md="8">
+              <h2>
+                Be part of the <span className="text-warning">NFT</span>{" "}
+                revolution
+              </h2>
+              <form onSubmit={getStarted}>
+                <div className="d-inline-block">
+                  <FormGroup
+                    key={formFields.get("username")!.id}
+                    field={formFields.get("username")!}
+                    onChange={createValueChangeHandler(
+                      formFields.get("username")!
+                    )}
+                    onBlur={createInputBlurHandler(formFields.get("username")!)}
+                    error={hasError(formFields.get("username")!)}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  variant="warning"
+                  className="d-inline-block ml-4"
+                >
+                  Open stall
+                </Button>
+              </form>
+            </Col>
+          </Row>
+        </Container>
+      </section>
       <div className="features-6">
         <Container className="mt-4">
           <Row className="text-center">
