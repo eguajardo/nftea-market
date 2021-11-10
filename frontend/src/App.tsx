@@ -7,7 +7,7 @@ import Explore from "pages/Explore";
 import Profile from "pages/Profile/Profile";
 import MyCollection from "pages/MyCollection/MyCollection";
 import MySponsored from "pages/MySponsored/MySponsored";
-import Home from "pages/Home";
+import Home from "pages/Home/Home";
 
 function App() {
   return (
