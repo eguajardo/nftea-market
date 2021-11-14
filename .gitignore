@@ -6,5 +6,5 @@ artifacts
 
 .env
 
-typechain
+/typechain
 docs
