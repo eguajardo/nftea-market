@@ -1,7 +1,14 @@
+import { useMemo } from "react";
 import { contracts } from "../helpers/contracts";
 import { BaseContract, ethers } from "ethers";
 import { useEthers, getChainName } from "@usedapp/core";
-import { useMemo } from "react";
+import { RelayProvider } from "@opengsn/provider";
+
+declare global {
+  interface Window {
+    ethereum: any;
+  }
+}
 
 export function useContract<T extends BaseContract>(
   contractName: string,
@@ -31,6 +38,8 @@ export function useContract<T extends BaseContract>(
       return null;
     }
 
+    console.log("window.ethereum", window.ethereum);
+
     const address = contractAddress
       ? contractAddress
       : contracts[chainName][contractName].address;
@@ -48,3 +57,13 @@ export function useContract<T extends BaseContract>(
 
   return contract;
 }
+
+const getRelayProvider = async (paymasterAddress: any) => {
+  const gsnProvider = await RelayProvider.newProvider({
+    provider: window.ethereum,
+    config: {
+      //loggerConfiguration: { logLevel: 'error' },
+      paymasterAddress,
+    },
+  }).init();
+};
