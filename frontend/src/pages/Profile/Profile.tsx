@@ -329,21 +329,6 @@ function Profile() {
               <Route exact path={`/${stallId}`}>
                 <div className="mt-2">{metadata?.description}</div>
               </Route>
-              <Route exact path={`/${stallId}/nfts`}>
-                {stallNFTClasses && (
-                  <NFTGallery
-                    nftsIds={stallNFTClasses.map((nftClass: BigNumber) =>
-                      nftClass.shl(128)
-                    )}
-                  />
-                )}
-              </Route>
-              <Route exact path={`/${stallId}/sponsorships`}>
-                <SponsorshipGallery
-                  sponsorshipsIds={sponsorshipsIds}
-                  stallId={stallId}
-                />
-              </Route>
               <Route exact path={`/${stallId}/nfts/new`}>
                 {vendorAddress && vendorAddress === account && (
                   <NewNFT stallId={stallId} />
@@ -353,6 +338,21 @@ function Profile() {
                 {vendorAddress && vendorAddress === account && (
                   <NewSponsorship stallId={stallId} />
                 )}
+              </Route>
+              <Route path={`/${stallId}/nfts`}>
+                {stallNFTClasses && (
+                  <NFTGallery
+                    nftsIds={stallNFTClasses.map((nftClass: BigNumber) =>
+                      nftClass.shl(128)
+                    )}
+                  />
+                )}
+              </Route>
+              <Route path={`/${stallId}/sponsorships`}>
+                <SponsorshipGallery
+                  sponsorshipsIds={sponsorshipsIds}
+                  stallId={stallId}
+                />
               </Route>
             </Switch>
           </div>

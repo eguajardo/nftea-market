@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link, useHistory } from "react-router-dom";
 import { useContractCall, useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import useFormAlert from "hooks/useFormAlert";
+import useAuthorizationSignature from "hooks/useAuthorizationSignature";
 import { parseLogValue } from "helpers/logs";
 import { fiatToStablecoin, stablecoinToFiat } from "helpers/currency";
-import useAuthorizationSignature from "hooks/useAuthorizationSignature";
-import { Link, useHistory } from "react-router-dom";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 import { Button, Col, Row, Image } from "react-bootstrap";
 import { BigNumber } from "ethers";
@@ -290,7 +290,7 @@ function NFTView(nft: NFTData) {
             <h2 className="main-price">
               <div>
                 <span className="mr-2">by</span>
-                <Link to={nft.stallName} className="text-info">
+                <Link to={`/${nft.stallName}`} className="text-info">
                   {nft.stallName}
                 </Link>
               </div>
