@@ -121,7 +121,7 @@ function NewNFT(props: {
 
   const [formState, setFormState] = useState<FormState>({});
   const { successAlertResult } = useFormAlert(formState);
-  const marketContract: Market = useContract("Market")!;
+  const marketContract: Market = useContract<Market>("Market")!;
 
   const { state: postNFTState, send: postNFTForSale } = useContractFunction(
     marketContract,
