@@ -2,6 +2,7 @@ import { uploadJSONMetadata, uploadFile } from "helpers/ipfs";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 
 import { useCallback, useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import { useContractFunction } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
@@ -9,7 +10,6 @@ import useFormAlert from "hooks/useFormAlert";
 
 import { FormProcessingStatus, FormState } from "types/forms";
 import { Market } from "types/typechain";
-import { Content } from "pages/Profile/Profile";
 import { SponsorshipData } from "types/metadata";
 
 import FormGroup from "components/ui/FormGroup/FormGroup";
@@ -17,12 +17,10 @@ import SubmitButton from "components/ui/SubmitButton";
 import { Col, Row } from "react-bootstrap";
 
 type Properties = SponsorshipData & {
-  setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
   setIsFinalizing: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 function SponsorshipFinalizingForm({
-  setContentDisplaying,
   setIsFinalizing,
   ...sponsorship
 }: Properties) {
@@ -86,6 +84,7 @@ function SponsorshipFinalizingForm({
     ])
   );
 
+  const routerHistory = useHistory();
   const [formState, setFormState] = useState<FormState>({});
   const { successAlertResult } = useFormAlert(formState);
   const marketContract: Market = useContract("Market")!;
@@ -150,9 +149,15 @@ function SponsorshipFinalizingForm({
       successAlertResult
     ) {
       resetForm();
-      setContentDisplaying(Content.NFTs);
+      routerHistory.push(`/${sponsorship.stallName}/nfts`);
     }
-  }, [formState.status, successAlertResult, resetForm, setContentDisplaying]);
+  }, [
+    formState.status,
+    successAlertResult,
+    resetForm,
+    routerHistory,
+    sponsorship.stallName,
+  ]);
 
   useEffect(() => {
     waitSuccessAlertDismiss();

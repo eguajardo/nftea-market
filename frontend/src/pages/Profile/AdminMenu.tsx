@@ -1,20 +1,20 @@
 import { uploadFile, uploadJSONMetadata } from "helpers/ipfs";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 import { Fragment, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import useFormAlert from "hooks/useFormAlert";
 import { Market } from "types/typechain";
 import { FormProcessingStatus, FormState } from "types/forms";
 import { Metadata } from "types/metadata";
-import { Content, ImageSource } from "./Profile";
+import { ImageSource } from "./Profile";
 
 import { Button, Container } from "react-bootstrap";
 
 type Properties = {
   vendorAddress: string;
   metadata?: Metadata;
-  setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
   profilePic?: ImageSource;
   headerPic?: ImageSource;
   editing: boolean;
@@ -25,13 +25,13 @@ type Properties = {
 function AdminMenu({
   vendorAddress,
   metadata,
-  setContentDisplaying,
   profilePic,
   headerPic,
   editing,
   editMode,
   setEditMode,
 }: Properties) {
+  const { stallId } = useParams<{ stallId: string }>();
   const { account } = useEthers();
   const marketContract: Market = useContract<Market>("Market")!;
   const [formState, setFormState] = useState<FormState>({});
@@ -110,21 +110,20 @@ function AdminMenu({
   return (
     <Fragment>
       {vendorAddress && vendorAddress === account && (
-        <Container className="admin-menu text-right mb-2">
-          <Button
-            variant="warning"
-            size="sm"
-            onClick={() => setContentDisplaying(Content.NewNFT)}
-          >
-            Create NFT
-          </Button>
-          <Button
-            variant="warning"
-            size="sm"
-            onClick={() => setContentDisplaying(Content.NewSponsorship)}
-          >
-            Request sponsorship
-          </Button>
+        <Container
+          className="admin-menu text-right mb-2"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <Link to={`/${stallId}/nfts/new`}>
+            <Button variant="warning" size="sm">
+              Create NFT
+            </Button>
+          </Link>
+          <Link to={`/${stallId}/sponsorships/new`}>
+            <Button variant="warning" size="sm">
+              Request sponsorship
+            </Button>
+          </Link>
           {!editMode && (
             <Button
               variant="default"

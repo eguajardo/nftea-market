@@ -1,7 +1,13 @@
 import { getJSONMetadata } from "helpers/ipfs";
 import { parseLogValue } from "helpers/logs";
-import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  NavLink,
+  Route,
+  Switch,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 import { useContractCall, useContractCalls, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { FileWithPath, useDropzone } from "react-dropzone";
@@ -14,9 +20,9 @@ import NFTGallery from "components/ui/NFTGallery/NFTGallery";
 import SponsorshipGallery from "components/ui/SponsorshipGallery/SponsorshipGallery";
 import NewNFT from "./NewNFT";
 import NewSponsorship from "./NewSponsorship";
+import AdminMenu from "./AdminMenu";
 
 import {
-  Button,
   Col,
   Container,
   Form,
@@ -31,15 +37,6 @@ import placeholderHeaderImage from "assets/img/image_placeholder.jpg";
 import placeholderProfileImage from "assets/img/placeholder.jpg";
 
 import "./style.scss";
-import AdminMenu from "./AdminMenu";
-
-export enum Content {
-  About,
-  NFTs,
-  Sponsorships,
-  NewNFT,
-  NewSponsorship,
-}
 
 const classNames = require("classnames");
 
@@ -58,10 +55,11 @@ function Profile() {
   const [editing, setEditing] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [sponsorshipsIds, setSponsorshipsIds] = useState<BigNumber[]>([]);
-  const [contentDisplaying, setContentDisplaying] = useState<Content>(
-    Content.About
-  );
   const { account, library } = useEthers();
+
+  const { search } = useLocation();
+  const query = useMemo(() => new URLSearchParams(search), [search]);
+  const txHash = query.get("hash");
 
   const [stallUri, vendorAddress] =
     useContractCalls([
@@ -118,7 +116,7 @@ function Profile() {
 
   useEffect(() => {
     loadSponsorships();
-  }, [loadSponsorships, contentDisplaying]);
+  }, [loadSponsorships, txHash]);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: "image/*",
@@ -203,7 +201,6 @@ function Profile() {
             <AdminMenu
               vendorAddress={vendorAddress}
               metadata={metadata}
-              setContentDisplaying={setContentDisplaying}
               profilePic={profilePic}
               headerPic={headerPic}
               editing={editing}
@@ -226,7 +223,6 @@ function Profile() {
             <AdminMenu
               vendorAddress={vendorAddress}
               metadata={metadata}
-              setContentDisplaying={setContentDisplaying}
               profilePic={profilePic}
               headerPic={headerPic}
               editing={editing}
@@ -293,42 +289,34 @@ function Profile() {
                   </div>
                   <Nav className="ml-auto" as="ul">
                     <Nav.Item as="li">
-                      <Button
-                        className={classNames("btn-link", {
-                          selected: contentDisplaying === Content.About,
-                        })}
-                        variant="info"
-                        onClick={() => setContentDisplaying(Content.About)}
+                      <NavLink
+                        to={`/${stallId}`}
+                        className="btn-link btn-info"
+                        activeClassName="selected"
                       >
                         <i className="tim-icons icon-badge mr-1" />
                         About
-                      </Button>
+                      </NavLink>
                     </Nav.Item>
                     <Nav.Item as="li">
-                      <Button
-                        className={classNames("btn-link", {
-                          selected: contentDisplaying === Content.NFTs,
-                        })}
-                        variant="info"
-                        onClick={() => setContentDisplaying(Content.NFTs)}
+                      <NavLink
+                        to={`/${stallId}/nfts`}
+                        className="btn-link btn-info"
+                        activeClassName="selected"
                       >
                         <i className="tim-icons icon-bag-16 mr-1" />
                         NFTs
-                      </Button>
+                      </NavLink>
                     </Nav.Item>
                     <Nav.Item as="li">
-                      <Button
-                        className={classNames("btn-link", {
-                          selected: contentDisplaying === Content.Sponsorships,
-                        })}
-                        variant="info"
-                        onClick={() =>
-                          setContentDisplaying(Content.Sponsorships)
-                        }
+                      <NavLink
+                        to={`/${stallId}/sponsorships`}
+                        className="btn-link btn-info"
+                        activeClassName="selected"
                       >
                         <i className="tim-icons icon-spaceship mr-1" />
                         Sponsorships
-                      </Button>
+                      </NavLink>
                     </Nav.Item>
                   </Nav>
                 </Navbar.Collapse>
@@ -337,33 +325,36 @@ function Profile() {
           </Row>
 
           <div className="mt-5">
-            {contentDisplaying === Content.About && (
-              <div className="mt-2">{metadata?.description}</div>
-            )}
-            {contentDisplaying === Content.NFTs && (
-              <NFTGallery
-                nftsIds={stallNFTClasses.map((nftClass: BigNumber) =>
-                  nftClass.shl(128)
+            <Switch>
+              <Route exact path={`/${stallId}`}>
+                <div className="mt-2">{metadata?.description}</div>
+              </Route>
+              <Route exact path={`/${stallId}/nfts`}>
+                {stallNFTClasses && (
+                  <NFTGallery
+                    nftsIds={stallNFTClasses.map((nftClass: BigNumber) =>
+                      nftClass.shl(128)
+                    )}
+                  />
                 )}
-              />
-            )}
-            {contentDisplaying === Content.Sponsorships && (
-              <SponsorshipGallery
-                sponsorshipsIds={sponsorshipsIds}
-                stallId={stallId}
-                setContentDisplaying={setContentDisplaying}
-              />
-            )}
-            {contentDisplaying === Content.NewNFT &&
-              vendorAddress &&
-              vendorAddress === account && (
-                <NewNFT setContentDisplaying={setContentDisplaying} />
-              )}
-            {contentDisplaying === Content.NewSponsorship &&
-              vendorAddress &&
-              vendorAddress === account && (
-                <NewSponsorship setContentDisplaying={setContentDisplaying} />
-              )}
+              </Route>
+              <Route exact path={`/${stallId}/sponsorships`}>
+                <SponsorshipGallery
+                  sponsorshipsIds={sponsorshipsIds}
+                  stallId={stallId}
+                />
+              </Route>
+              <Route exact path={`/${stallId}/nfts/new`}>
+                {vendorAddress && vendorAddress === account && (
+                  <NewNFT stallId={stallId} />
+                )}
+              </Route>
+              <Route exact path={`/${stallId}/sponsorships/new`}>
+                {vendorAddress && vendorAddress === account && (
+                  <NewSponsorship stallId={stallId} />
+                )}
+              </Route>
+            </Switch>
           </div>
         </div>
       </Container>

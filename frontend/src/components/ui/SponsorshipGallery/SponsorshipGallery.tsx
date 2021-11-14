@@ -8,7 +8,6 @@ import { SponsorshipData } from "types/metadata";
 import SponsorshipCard from "./SponsorshipCard";
 import SponsorshipView from "./SponsorshipView";
 import { Col, Row } from "react-bootstrap";
-import { Content } from "pages/Profile/Profile";
 
 import "./style.scss";
 import SponsorshipFinalizingForm from "./SponsorshipFinalizingForm";
@@ -16,7 +15,6 @@ import SponsorshipFinalizingForm from "./SponsorshipFinalizingForm";
 function SponsorshipGallery(props: {
   sponsorshipsIds: BigNumber[];
   stallId: string;
-  setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
 }) {
   console.log("render Sponsorships");
 
@@ -81,14 +79,12 @@ function SponsorshipGallery(props: {
       )}
       {sponsorshipSelected && !isFinalizing && (
         <SponsorshipView
-          setContentDisplaying={props.setContentDisplaying}
           setIsFinalizing={setIsFinalizing}
           {...sponsorshipSelected}
         />
       )}
       {sponsorshipSelected && isFinalizing && (
         <SponsorshipFinalizingForm
-          setContentDisplaying={props.setContentDisplaying}
           setIsFinalizing={setIsFinalizing}
           {...sponsorshipSelected}
         />

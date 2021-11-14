@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import { useContractCall, useContractFunction, useEthers } from "@usedapp/core";
-import { useParams } from "react-router-dom";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
 import useFormAlert from "hooks/useFormAlert";
@@ -12,7 +12,6 @@ import { SponsorshipData } from "types/metadata";
 import { Market, SponsorshipEscrow } from "types/typechain";
 import { FormProcessingStatus, FormState } from "types/forms";
 import { BigNumber } from "ethers";
-import { Content } from "pages/Profile/Profile";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCoins } from "@fortawesome/free-solid-svg-icons";
@@ -22,15 +21,10 @@ import FormGroup from "../FormGroup/FormGroup";
 const classNames = require("classnames");
 
 type Properties = SponsorshipData & {
-  setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
   setIsFinalizing: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function SponsorshipView({
-  setContentDisplaying,
-  setIsFinalizing,
-  ...sponsorship
-}: Properties) {
+function SponsorshipView({ setIsFinalizing, ...sponsorship }: Properties) {
   const {
     formFields,
     createValueChangeHandler,
@@ -60,7 +54,7 @@ function SponsorshipView({
     ])
   );
 
-  const { stallId } = useParams<{ stallId: string }>();
+  const routerHistory = useHistory();
   const [formState, setFormState] = useState<FormState>({});
   const { Alert, successAlertResult } = useFormAlert(formState);
 
@@ -72,11 +66,11 @@ function SponsorshipView({
   const [vendorAddress] =
     useContractCall(
       marketContract &&
-        stallId && {
+        sponsorship.stallName && {
           abi: marketContract.interface,
           address: marketContract.address,
           method: "stallVendor",
-          args: [stallId],
+          args: [sponsorship.stallName],
         }
     ) ?? [];
 
@@ -194,9 +188,14 @@ function SponsorshipView({
       formState.status === FormProcessingStatus.Success &&
       successAlertResult
     ) {
-      setContentDisplaying(Content.About);
+      routerHistory.push(`/${sponsorship.stallName}/sponsorships`);
     }
-  }, [formState.status, setContentDisplaying, successAlertResult]);
+  }, [
+    formState.status,
+    routerHistory,
+    sponsorship.stallName,
+    successAlertResult,
+  ]);
 
   useEffect(() => {
     waitSuccessAlertDismiss();

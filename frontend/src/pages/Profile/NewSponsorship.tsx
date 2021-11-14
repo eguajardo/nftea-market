@@ -2,6 +2,7 @@ import { uploadJSONMetadata, uploadFile } from "helpers/ipfs";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 
 import { useCallback, useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import { useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
@@ -14,11 +15,8 @@ import { Market } from "types/typechain";
 import FormGroup from "components/ui/FormGroup/FormGroup";
 import SubmitButton from "components/ui/SubmitButton";
 import { Col, Row } from "react-bootstrap";
-import { Content } from "./Profile";
 
-function NewSponsorship(props: {
-  setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
-}) {
+function NewSponsorship({ stallId }: { stallId: string }) {
   console.log("render NewSponsorship");
   const {
     formFields,
@@ -154,6 +152,7 @@ function NewSponsorship(props: {
     ])
   );
 
+  const routerHistory = useHistory();
   const [formState, setFormState] = useState<FormState>({});
   const { successAlertResult } = useFormAlert(formState);
   const marketContract: Market = useContract("Market")!;
@@ -241,9 +240,18 @@ function NewSponsorship(props: {
       successAlertResult
     ) {
       resetForm();
-      props.setContentDisplaying(Content.Sponsorships);
+      routerHistory.push(
+        `/${stallId}/sponsorships?hash=${requestSponsorshipState.transaction?.hash}`
+      );
     }
-  }, [formState.status, successAlertResult, resetForm, props]);
+  }, [
+    formState.status,
+    successAlertResult,
+    resetForm,
+    requestSponsorshipState,
+    routerHistory,
+    stallId,
+  ]);
 
   useEffect(() => {
     waitSuccessAlertDismiss();

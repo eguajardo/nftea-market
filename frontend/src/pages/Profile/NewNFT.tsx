@@ -2,6 +2,7 @@ import { uploadJSONMetadata, uploadFile } from "helpers/ipfs";
 import { createSubmissionHandler } from "helpers/submissionHandler";
 
 import { useCallback, useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import { useContractFunction } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
@@ -9,15 +10,12 @@ import useFormAlert from "hooks/useFormAlert";
 
 import { FormProcessingStatus, FormState } from "types/forms";
 import { Market } from "types/typechain";
-import { Content } from "./Profile";
 
 import FormGroup from "components/ui/FormGroup/FormGroup";
 import SubmitButton from "components/ui/SubmitButton";
 import { Col, Row } from "react-bootstrap";
 
-function NewNFT(props: {
-  setContentDisplaying: React.Dispatch<React.SetStateAction<Content>>;
-}) {
+function NewNFT({ stallId }: { stallId: string }) {
   console.log("render NewNFT");
   const {
     formFields,
@@ -119,6 +117,7 @@ function NewNFT(props: {
     ])
   );
 
+  const routerHistory = useHistory();
   const [formState, setFormState] = useState<FormState>({});
   const { successAlertResult } = useFormAlert(formState);
   const marketContract: Market = useContract("Market")!;
@@ -188,9 +187,9 @@ function NewNFT(props: {
       successAlertResult
     ) {
       resetForm();
-      props.setContentDisplaying(Content.NFTs);
+      routerHistory.push(`/${stallId}/nfts`);
     }
-  }, [formState.status, successAlertResult, resetForm, props]);
+  }, [formState.status, successAlertResult, resetForm, routerHistory, stallId]);
 
   useEffect(() => {
     waitSuccessAlertDismiss();

@@ -30,7 +30,7 @@ function App() {
         <Route path="/:stallId">
           <Profile />
         </Route>
-        <Route path="/">
+        <Route exact path="/">
           <Home />
         </Route>
       </Switch>
