@@ -16,14 +16,7 @@ import FormGroup from "components/ui/FormGroup/FormGroup";
 import SubmitButton from "components/ui/SubmitButton";
 import { Col, Row } from "react-bootstrap";
 
-type Properties = SponsorshipData & {
-  setIsFinalizing: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-function SponsorshipFinalizingForm({
-  setIsFinalizing,
-  ...sponsorship
-}: Properties) {
+function SponsorshipFinalizingForm({ ...sponsorship }: SponsorshipData) {
   const {
     formFields,
     createValueChangeHandler,

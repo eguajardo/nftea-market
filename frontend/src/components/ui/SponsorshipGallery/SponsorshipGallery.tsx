@@ -1,5 +1,12 @@
 import { getJSONMetadata } from "helpers/ipfs";
 import { useEffect, useState } from "react";
+import {
+  Route,
+  Switch,
+  useHistory,
+  useParams,
+  useRouteMatch,
+} from "react-router-dom";
 import { useContractCalls } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { BigNumber } from "ethers";
@@ -7,10 +14,10 @@ import { Market } from "types/typechain";
 import { SponsorshipData } from "types/metadata";
 import SponsorshipCard from "./SponsorshipCard";
 import SponsorshipView from "./SponsorshipView";
+import SponsorshipFinalizingForm from "./SponsorshipFinalizingForm";
 import { Col, Row } from "react-bootstrap";
 
 import "./style.scss";
-import SponsorshipFinalizingForm from "./SponsorshipFinalizingForm";
 
 function SponsorshipGallery(props: {
   sponsorshipsIds: BigNumber[];
@@ -18,9 +25,8 @@ function SponsorshipGallery(props: {
 }) {
   console.log("render Sponsorships");
 
-  const [sponsorshipSelected, setSponsorshipSelected] =
-    useState<SponsorshipData>();
-  const [isFinalizing, setIsFinalizing] = useState(false);
+  const { path, url } = useRouteMatch();
+  const routerHistory = useHistory();
   const [sponsorships, setSponsorships] = useState<SponsorshipData[]>();
   const marketContract: Market = useContract("Market")!;
 
@@ -56,41 +62,77 @@ function SponsorshipGallery(props: {
   }, [sponsorshipsData, props.sponsorshipsIds]);
 
   const selectSponsorship = (sponsorship: SponsorshipData) => {
-    setSponsorshipSelected(sponsorship);
+    routerHistory.push(`${url}/${sponsorship.sponsorshipId}`);
   };
 
   return (
     <div>
-      {sponsorships && !sponsorshipSelected && (
-        <Row>
-          {sponsorships
-            .filter((sponsorship) => sponsorship.active)
-            .map((sponsorship) => {
-              return (
-                <Col md={6} sm={12} key={sponsorship.sponsorshipId.toString()}>
-                  <SponsorshipCard
-                    {...sponsorship}
-                    onSelect={selectSponsorship}
-                  />
-                </Col>
-              );
-            })}
-        </Row>
-      )}
-      {sponsorshipSelected && !isFinalizing && (
-        <SponsorshipView
-          setIsFinalizing={setIsFinalizing}
-          {...sponsorshipSelected}
-        />
-      )}
-      {sponsorshipSelected && isFinalizing && (
-        <SponsorshipFinalizingForm
-          setIsFinalizing={setIsFinalizing}
-          {...sponsorshipSelected}
-        />
-      )}
+      <Switch>
+        <Route exact path={path}>
+          {sponsorships && (
+            <Row>
+              {sponsorships
+                .filter((sponsorship) => sponsorship.active)
+                .map((sponsorship) => {
+                  return (
+                    <Col
+                      md={6}
+                      sm={12}
+                      key={sponsorship.sponsorshipId.toString()}
+                    >
+                      <SponsorshipCard
+                        {...sponsorship}
+                        onSelect={selectSponsorship}
+                      />
+                    </Col>
+                  );
+                })}
+            </Row>
+          )}
+        </Route>
+        <Route exact path={`${path}/:sponsorshipId`}>
+          {sponsorships && (
+            <SelectSponsorshipView sponsorships={sponsorships} />
+          )}
+        </Route>
+        <Route exact path={`${path}/:sponsorshipId/fulfill`}>
+          {sponsorships && (
+            <SelectSponsorshipForm sponsorships={sponsorships} />
+          )}
+        </Route>
+      </Switch>
     </div>
   );
 }
 
 export default SponsorshipGallery;
+
+function SelectSponsorshipView(props: { sponsorships: SponsorshipData[] }) {
+  const { sponsorshipId } = useParams<{ sponsorshipId: string }>();
+  const filteredSponsorships = props.sponsorships.filter((sponsorship) =>
+    sponsorship.sponsorshipId.eq(sponsorshipId)
+  );
+
+  return (
+    <div>
+      {filteredSponsorships.length > 0 && (
+        <SponsorshipView {...filteredSponsorships[0]} />
+      )}
+    </div>
+  );
+}
+
+function SelectSponsorshipForm(props: { sponsorships: SponsorshipData[] }) {
+  const { sponsorshipId } = useParams<{ sponsorshipId: string }>();
+  const filteredSponsorships = props.sponsorships.filter((sponsorship) =>
+    sponsorship.sponsorshipId.eq(sponsorshipId)
+  );
+
+  return (
+    <div>
+      {filteredSponsorships.length > 0 && (
+        <SponsorshipFinalizingForm {...filteredSponsorships[0]} />
+      )}
+    </div>
+  );
+}

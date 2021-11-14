@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
+import { Link, useHistory, useRouteMatch } from "react-router-dom";
 import { useContractCall, useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "hooks/useContract";
 import { useFormFields } from "hooks/useFormFields";
@@ -20,11 +20,7 @@ import FormGroup from "../FormGroup/FormGroup";
 
 const classNames = require("classnames");
 
-type Properties = SponsorshipData & {
-  setIsFinalizing: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-function SponsorshipView({ setIsFinalizing, ...sponsorship }: Properties) {
+function SponsorshipView({ ...sponsorship }: SponsorshipData) {
   const {
     formFields,
     createValueChangeHandler,
@@ -55,6 +51,7 @@ function SponsorshipView({ setIsFinalizing, ...sponsorship }: Properties) {
   );
 
   const routerHistory = useHistory();
+  const { url } = useRouteMatch();
   const [formState, setFormState] = useState<FormState>({});
   const { Alert, successAlertResult } = useFormAlert(formState);
 
@@ -201,10 +198,6 @@ function SponsorshipView({ setIsFinalizing, ...sponsorship }: Properties) {
     waitSuccessAlertDismiss();
   }, [waitSuccessAlertDismiss]);
 
-  const onFulfillClick = () => {
-    setIsFinalizing(true);
-  };
-
   return (
     <div>
       <Row>
@@ -230,12 +223,11 @@ function SponsorshipView({ setIsFinalizing, ...sponsorship }: Properties) {
               of ${(sponsorship.requestedAmount.toNumber() / 100).toFixed(2)}{" "}
               funded{" "}
               {vendorAddress === account && percent >= 100 && (
-                <Button
-                  className="btn-simple btn-warning"
-                  onClick={onFulfillClick}
-                >
-                  Fulfill and Claim
-                </Button>
+                <Link to={`${url}/fulfill`}>
+                  <Button className="btn-simple btn-warning">
+                    Fulfill and Claim
+                  </Button>
+                </Link>
               )}
             </div>
             <div className="completion-bar">

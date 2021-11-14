@@ -59,8 +59,6 @@ function NFTGallery(props: { nftsIds: BigNumber[] }) {
   }, [nftsData, props.nftsIds]);
 
   const selectNFT = (nft: NFTData) => {
-    console.log("nft.class", nft.class);
-    console.log("nft.serial", nft.serial);
     routerHistory.push(
       `${url}/${nft.class.shl(128).add(nft.serial).toString()}` // Convert class and serial to ID
     );
