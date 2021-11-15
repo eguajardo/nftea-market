@@ -42,9 +42,10 @@ const getLogs = async (
   filter: TypedEventFilter<any, any>,
   provider: Web3Provider
 ) => {
+  const currentBlock = await provider.getBlockNumber();
   return await provider.getLogs({
     ...filter,
-    fromBlock: 21063861,
-    toBlock: await provider.getBlockNumber(),
+    fromBlock: currentBlock - 1000,
+    toBlock: currentBlock,
   });
 };
