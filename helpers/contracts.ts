@@ -1,7 +1,7 @@
 export const contracts: any = {
   "localhost": {
     "ERC20PresetFixedSupply": {
-      "address": "0xBf2B4EDa47817f0682F0c0eD894054D3642B7248",
+      "address": "0xd437049588b46c0447174b6fF0ce45A762Df9Ba6",
       "abi": [
         {
           "inputs": [
@@ -571,7 +571,7 @@ export const contracts: any = {
       ]
     },
     "Market": {
-      "address": "0x57075bcCFA3f4D76a3f667Cc8Dd48CaD7844DFE0",
+      "address": "0xceADAA2009F9ce8cE83CC27b3EeA752ff2f2DF93",
       "abi": [
         {
           "inputs": [
@@ -1286,7 +1286,7 @@ export const contracts: any = {
       ]
     },
     "MultiToken": {
-      "address": "0xe6bafe782C7822d5D51243209AC1eF3225Ce8d39",
+      "address": "0x0cfAd040CC6c4616bE18677083BAF1788B581282",
       "abi": [
         {
           "inputs": [
@@ -2186,7 +2186,7 @@ export const contracts: any = {
       ]
     },
     "SponsorshipEscrow": {
-      "address": "0x14a943845e6351cF7f57d1BE12C288c5f84f6A66",
+      "address": "0x4704657076cE88947Fd891A4aa4385eBd7a366a8",
       "abi": [
         {
           "inputs": [
@@ -2804,7 +2804,7 @@ export const contracts: any = {
   },
   "mumbai": {
     "ERC20PresetFixedSupply": {
-      "address": "0x57075bcCFA3f4D76a3f667Cc8Dd48CaD7844DFE0",
+      "address": "0xceADAA2009F9ce8cE83CC27b3EeA752ff2f2DF93",
       "abi": [
         {
           "inputs": [
@@ -3374,7 +3374,7 @@ export const contracts: any = {
       ]
     },
     "Market": {
-      "address": "0xd437049588b46c0447174b6fF0ce45A762Df9Ba6",
+      "address": "0x23008D2Be96412e16a760407D74a67C7502Bb4A1",
       "abi": [
         {
           "inputs": [
@@ -4089,7 +4089,7 @@ export const contracts: any = {
       ]
     },
     "MultiToken": {
-      "address": "0x374f5142234C5741343Eff76A928Dd473DB88964",
+      "address": "0x284B186Ebe1c1FD45f25e3C4026a28049B143799",
       "abi": [
         {
           "inputs": [
@@ -4989,7 +4989,7 @@ export const contracts: any = {
       ]
     },
     "SponsorshipEscrow": {
-      "address": "0x859306532F6982E3975d5f87b4619c7e208d4184",
+      "address": "0x7A313fA91B40eeFBbD38ff90BA5b024c7f50De3c",
       "abi": [
         {
           "inputs": [
