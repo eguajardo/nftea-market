@@ -7,6 +7,8 @@ import {
   ERC20PresetFixedSupply__factory,
   Market,
   Market__factory,
+  MinimalForwarder,
+  MinimalForwarder__factory,
   MultiToken,
   SponsorshipEscrow,
 } from "../typechain";
@@ -48,8 +50,12 @@ const main = async () => {
   if (NETWORKS_TESTNETS.includes(network.name)) {
     await deployTestCurrency();
   }
+
+  await deployForwarderContract();
+
   await deployMarketContract(
-    deployedContracts.get("ERC20PresetFixedSupply")!.address
+    deployedContracts.get("ERC20PresetFixedSupply")!.address,
+    deployedContracts.get("MinimalForwarder")!.address
   );
 
   if (NETWORKS_TESTNETS.includes(network.name)) {
@@ -60,13 +66,26 @@ const main = async () => {
   copyTypingsToFrontend();
 };
 
-const deployMarketContract = async (currencyContractAddress: string) => {
+const deployForwarderContract = async () => {
+  const forwarderFactory: MinimalForwarder__factory =
+    await ethers.getContractFactory("MinimalForwarder");
+  const forwarderContract: MinimalForwarder = await forwarderFactory.deploy();
+  await forwarderContract.deployed();
+
+  deployedContracts.set("MinimalForwarder", forwarderContract);
+};
+
+const deployMarketContract = async (
+  currencyContractAddress: string,
+  forwarderContractAddress: string
+) => {
   const marketFactory: Market__factory = await ethers.getContractFactory(
     "Market"
   );
   const marketContract: Market = await marketFactory.deploy(
     currencyContractAddress,
-    ERC20_CURRENCY_DECIMALS
+    ERC20_CURRENCY_DECIMALS,
+    forwarderContractAddress
   );
   await marketContract.deployed();
 

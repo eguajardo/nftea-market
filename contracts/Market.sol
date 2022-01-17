@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.3;
 
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import "@openzeppelin/contracts/metatx/MinimalForwarder.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
@@ -12,7 +14,7 @@ import "./SponsorshipEscrow.sol";
  * @title Market
  * @notice Contract handling stalls and purchases
  */
-contract Market is Context {
+contract Market is ERC2771Context {
 
     /**
      * @notice Maximum number of shares for NFT payment splitters excluding 
@@ -184,8 +186,13 @@ contract Market is Context {
      * @notice Initialize contract and the NFT token contract
      * @param stablecoin_ The stablecoin contract address used as currency
      * @param stablecoinDecimals_ Amount of decimals used by the stablecoin
+     * @param forwarder_ Minimum forwarder for relay transactions
      */
-    constructor (IEIP3009 stablecoin_, uint8 stablecoinDecimals_) {
+    constructor (
+        IEIP3009 stablecoin_, 
+        uint8 stablecoinDecimals_, 
+        MinimalForwarder forwarder_
+    ) ERC2771Context(address(forwarder_)) {
         nftContract = new MultiToken("NFTea.market", "NFTEA");
         stablecoin = stablecoin_;
         stablecoinDecimals = stablecoinDecimals_;

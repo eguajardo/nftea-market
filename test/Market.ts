@@ -20,6 +20,8 @@ import {
   PaymentSplitter__factory,
   SponsorshipEscrow,
   SponsorshipEscrow__factory,
+  MinimalForwarder,
+  MinimalForwarder__factory,
 } from "../typechain";
 
 describe("Market contract", () => {
@@ -36,6 +38,7 @@ describe("Market contract", () => {
   const TEST_SPONSORSHIP_ID: BigNumber = ethers.constants.Zero;
   const PLATFORM_COMISSION: number = 0.05;
 
+  let forwarderContract: MinimalForwarder;
   let marketContract: Market;
   let nftContract: MultiToken;
   let currencyContract: ERC20PresetFixedSupply;
@@ -70,13 +73,18 @@ describe("Market contract", () => {
       sponsor5,
     ]);
 
+    const forwarderFactory: MinimalForwarder__factory =
+      await ethers.getContractFactory("MinimalForwarder", defaultSigner);
+    forwarderContract = await forwarderFactory.deploy();
+
     const marketFactory: Market__factory = await ethers.getContractFactory(
       "Market",
       defaultSigner
     );
     marketContract = await marketFactory.deploy(
       currencyContract.address,
-      await currencyContract.decimals()
+      await currencyContract.decimals(),
+      forwarderContract.address
     );
     await marketContract.deployed();
 
