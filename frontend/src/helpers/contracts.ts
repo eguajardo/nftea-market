@@ -1,7 +1,7 @@
 export const contracts: any = {
   "localhost": {
     "ERC20PresetFixedSupply": {
-      "address": "0xd437049588b46c0447174b6fF0ce45A762Df9Ba6",
+      "address": "0xceADAA2009F9ce8cE83CC27b3EeA752ff2f2DF93",
       "abi": [
         {
           "inputs": [
@@ -570,8 +570,154 @@ export const contracts: any = {
         }
       ]
     },
+    "MinimalForwarder": {
+      "address": "0x23008D2Be96412e16a760407D74a67C7502Bb4A1",
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "inputs": [
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "from",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "value",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "gas",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "nonce",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct MinimalForwarder.ForwardRequest",
+              "name": "req",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "name": "execute",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "",
+              "type": "bytes"
+            }
+          ],
+          "stateMutability": "payable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "from",
+              "type": "address"
+            }
+          ],
+          "name": "getNonce",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "from",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "to",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "value",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "gas",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "nonce",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct MinimalForwarder.ForwardRequest",
+              "name": "req",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "name": "verify",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        }
+      ]
+    },
     "Market": {
-      "address": "0xceADAA2009F9ce8cE83CC27b3EeA752ff2f2DF93",
+      "address": "0x08bc8A114cEF422051C5e0C61fc4bCb40f7e2e51",
       "abi": [
         {
           "inputs": [
@@ -584,6 +730,11 @@ export const contracts: any = {
               "internalType": "uint8",
               "name": "stablecoinDecimals_",
               "type": "uint8"
+            },
+            {
+              "internalType": "contract MinimalForwarder",
+              "name": "forwarder_",
+              "type": "address"
             }
           ],
           "stateMutability": "nonpayable",
@@ -872,6 +1023,25 @@ export const contracts: any = {
               "internalType": "contract SponsorshipEscrow",
               "name": "",
               "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "forwarder",
+              "type": "address"
+            }
+          ],
+          "name": "isTrustedForwarder",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
             }
           ],
           "stateMutability": "view",
@@ -1286,7 +1456,7 @@ export const contracts: any = {
       ]
     },
     "MultiToken": {
-      "address": "0x0cfAd040CC6c4616bE18677083BAF1788B581282",
+      "address": "0xf66Aec0D8e1c7A5BE99e84C1995144fd76CE0506",
       "abi": [
         {
           "inputs": [
@@ -2186,7 +2356,7 @@ export const contracts: any = {
       ]
     },
     "SponsorshipEscrow": {
-      "address": "0x4704657076cE88947Fd891A4aa4385eBd7a366a8",
+      "address": "0xb346De8A129BaE86572262d73267d996093D834C",
       "abi": [
         {
           "inputs": [

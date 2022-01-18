@@ -27,6 +27,7 @@ interface MarketInterface extends ethers.utils.Interface {
     "PLATFORM_COMISSION_SHARES()": FunctionFragment;
     "buyNFT(uint128,bytes32,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "escrow()": FunctionFragment;
+    "isTrustedForwarder(address)": FunctionFragment;
     "nftContract()": FunctionFragment;
     "nftData(uint256)": FunctionFragment;
     "paymentAddress(uint128)": FunctionFragment;
@@ -73,6 +74,10 @@ interface MarketInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(functionFragment: "escrow", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "isTrustedForwarder",
+    values: [string]
+  ): string;
   encodeFunctionData(
     functionFragment: "nftContract",
     values?: undefined
@@ -148,6 +153,10 @@ interface MarketInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "buyNFT", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "escrow", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isTrustedForwarder",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "nftContract",
     data: BytesLike
@@ -329,6 +338,11 @@ export class Market extends BaseContract {
 
     escrow(overrides?: CallOverrides): Promise<[string]>;
 
+    isTrustedForwarder(
+      forwarder: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     nftContract(overrides?: CallOverrides): Promise<[string]>;
 
     nftData(
@@ -476,6 +490,11 @@ export class Market extends BaseContract {
 
   escrow(overrides?: CallOverrides): Promise<string>;
 
+  isTrustedForwarder(
+    forwarder: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   nftContract(overrides?: CallOverrides): Promise<string>;
 
   nftData(
@@ -604,6 +623,11 @@ export class Market extends BaseContract {
     ): Promise<BigNumber>;
 
     escrow(overrides?: CallOverrides): Promise<string>;
+
+    isTrustedForwarder(
+      forwarder: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     nftContract(overrides?: CallOverrides): Promise<string>;
 
@@ -923,6 +947,11 @@ export class Market extends BaseContract {
 
     escrow(overrides?: CallOverrides): Promise<BigNumber>;
 
+    isTrustedForwarder(
+      forwarder: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     nftContract(overrides?: CallOverrides): Promise<BigNumber>;
 
     nftData(id_: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -1025,6 +1054,11 @@ export class Market extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     escrow(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    isTrustedForwarder(
+      forwarder: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     nftContract(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

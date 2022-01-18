@@ -37,6 +37,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PaymentSplitter__factory>;
     getContractFactory(
+      name: "ERC2771Context",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC2771Context__factory>;
+    getContractFactory(
+      name: "MinimalForwarder",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MinimalForwarder__factory>;
+    getContractFactory(
       name: "ERC1155",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC1155__factory>;
@@ -159,6 +167,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.PaymentSplitter>;
+    getContractAt(
+      name: "ERC2771Context",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC2771Context>;
+    getContractAt(
+      name: "MinimalForwarder",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MinimalForwarder>;
     getContractAt(
       name: "ERC1155",
       address: string,

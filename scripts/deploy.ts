@@ -14,7 +14,11 @@ import {
 } from "../typechain";
 
 const NETWORKS_LOCAL: Array<string> = ["hardhat", "localhost"];
-const NETWORKS_TESTNETS: Array<string> = [...NETWORKS_LOCAL, "mumbai"];
+const NETWORKS_TESTNETS: Array<string> = [
+  ...NETWORKS_LOCAL,
+  "mumbai",
+  "BSCTestnet",
+];
 const ERC20_CURRENCY_DECIMALS: number = 6;
 const CONTRACTS_FILENAME: string = "contracts.ts";
 
@@ -47,15 +51,27 @@ const asyncForEach = async <T>(
 const main = async () => {
   console.log("Deploying to network:", network.name);
 
-  if (NETWORKS_TESTNETS.includes(network.name)) {
+  if (
+    NETWORKS_LOCAL.includes(network.name) ||
+    (NETWORKS_TESTNETS.includes(network.name) &&
+      !contracts[network.name]?.ERC20PresetFixedSupply)
+  ) {
     await deployTestCurrency();
   }
 
-  await deployForwarderContract();
+  if (
+    NETWORKS_LOCAL.includes(network.name) ||
+    (NETWORKS_TESTNETS.includes(network.name) &&
+      !contracts[network.name]?.MinimalForwarder)
+  ) {
+    await deployForwarderContract();
+  }
 
   await deployMarketContract(
-    deployedContracts.get("ERC20PresetFixedSupply")!.address,
-    deployedContracts.get("MinimalForwarder")!.address
+    deployedContracts.get("ERC20PresetFixedSupply")?.address ??
+      contracts[network.name]["ERC20PresetFixedSupply"].address,
+    deployedContracts.get("MinimalForwarder")?.address ??
+      contracts[network.name]["MinimalForwarder"].address
   );
 
   if (NETWORKS_TESTNETS.includes(network.name)) {
@@ -88,6 +104,7 @@ const deployMarketContract = async (
     forwarderContractAddress
   );
   await marketContract.deployed();
+  console.log("Market address", marketContract.address);
 
   const nftContract: MultiToken = await ethers.getContractAt(
     "MultiToken",
