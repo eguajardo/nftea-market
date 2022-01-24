@@ -127,8 +127,8 @@ const deployMarketContract = async (
 const deployTestCurrency = async () => {
   const TEST_CURRENCY_NAME: string = "Test USD Coin";
   const TEST_CURRENCY_SYMBOL: string = "TestUSDC";
-  const CURRENCY_SUPPLY: BigNumber = BigNumber.from("1000000000000"); // 1,000,000 USDC
-  const ACCOUNT_BALANCE: BigNumber = BigNumber.from("1000000000"); // 1000 USDC
+  const CURRENCY_SUPPLY: BigNumber = BigNumber.from("100000000000000"); // 100,000,000 USDC
+  const ACCOUNT_BALANCE: BigNumber = BigNumber.from("100000000000"); // 100,000 USDC
 
   const currencyFactory: ERC20PresetFixedSupply__factory =
     await ethers.getContractFactory("ERC20PresetFixedSupply");
